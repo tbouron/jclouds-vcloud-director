@@ -182,8 +182,32 @@ public class VCloudDirectorComputeServiceAdapter implements
          }
       }
       Vm vm = Iterables.getOnlyElement(api.getVAppApi().get(vApp.getHref()).getChildren().getVms());
-      LoginCredentials loginCredentials = VCloudDirectorComputeUtils.getCredentialsFrom(vm);
-      return new NodeAndInitialCredentials(vm, vm.getId(), loginCredentials.toBuilder().user("root").build());
+
+      // Infer the login credentials from the VM, defaulting to "root" user
+      LoginCredentials defaultCredentials = VCloudDirectorComputeUtils.getCredentialsFrom(vm);
+      LoginCredentials.Builder credsBuilder;
+      if (defaultCredentials == null) {
+         credsBuilder = LoginCredentials.builder().user("root");
+      } else {
+         credsBuilder = defaultCredentials.toBuilder();
+         if (defaultCredentials.getUser() == null) {
+            credsBuilder.user("root");
+         }
+      }
+      // If login overrides are supplied in TemplateOptions, always prefer those.
+      String overriddenLoginUser = template.getOptions().getLoginUser();
+      String overriddenLoginPassword = template.getOptions().getLoginPassword();
+      String overriddenLoginPrivateKey = template.getOptions().getLoginPrivateKey();
+      if (overriddenLoginUser != null) {
+         credsBuilder.user(overriddenLoginUser);
+      }
+      if (overriddenLoginPassword != null) {
+         credsBuilder.password(overriddenLoginPassword);
+      }
+      if (overriddenLoginPrivateKey != null) {
+         credsBuilder.privateKey(overriddenLoginPrivateKey);
+      }
+      return new NodeAndInitialCredentials<Vm>(vm, vm.getId(), credsBuilder.build());
    }
 
    private SourcedCompositionItemParam createVmItem(Vm vm, String networkName) {
