@@ -27,8 +27,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import org.jclouds.dmtf.DMTFConstants;
-import org.jclouds.dmtf.ovf.ProductSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.DMTFConstants;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.ProductSection;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Objects.ToStringHelper;

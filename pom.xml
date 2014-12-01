@@ -29,7 +29,7 @@
   <groupId>io.cloudsoft.jclouds.labs</groupId>
   <artifactId>vcloud-director</artifactId>
   <name>jclouds vcloud-director api</name>
-  <version>1.8.2-alpha-cloudsoft.6</version>
+  <version>1.8.2-SNAPSHOT</version>
   <description>jclouds components to access an implementation of VMware vCloud Director 1.5+</description>
   <packaging>bundle</packaging>
 
@@ -73,11 +73,6 @@
       <groupId>org.apache.jclouds</groupId>
       <artifactId>jclouds-compute</artifactId>
       <version>1.8.2-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>io.cloudsoft.jclouds.labs</groupId>
-      <artifactId>dmtf</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.jclouds</groupId>

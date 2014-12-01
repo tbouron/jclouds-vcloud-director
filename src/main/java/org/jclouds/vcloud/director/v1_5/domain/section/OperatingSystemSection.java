@@ -18,7 +18,7 @@ package org.jclouds.vcloud.director.v1_5.domain.section;
 
 import static com.google.common.base.Objects.equal;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.jclouds.dmtf.DMTFConstants.OVF_NS;
+import static org.jclouds.vcloud.director.v1_5.domain.dmtf.DMTFConstants.OVF_NS;
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorConstants.VCLOUD_1_5_NS;
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorConstants.VCLOUD_VMW_NS;
 
@@ -43,8 +43,8 @@ import com.google.common.collect.Sets;
  */
 @XmlRootElement(name = "OperatingSystemSection", namespace = OVF_NS)
 @XmlType(name = "OperatingSystemSection_Type")
-@XmlSeeAlso({ org.jclouds.dmtf.ovf.OperatingSystemSection.class })
-public class OperatingSystemSection extends org.jclouds.dmtf.ovf.OperatingSystemSection {
+@XmlSeeAlso({ org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.OperatingSystemSection.class })
+public class OperatingSystemSection extends org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.OperatingSystemSection {
 
    public static Builder<?> builder() {
       return new ConcreteBuilder();
@@ -58,7 +58,7 @@ public class OperatingSystemSection extends org.jclouds.dmtf.ovf.OperatingSystem
    private static class ConcreteBuilder extends Builder<ConcreteBuilder> {
    }
    
-   public static class Builder<B extends Builder<B>> extends org.jclouds.dmtf.ovf.OperatingSystemSection.Builder<B> {
+   public static class Builder<B extends Builder<B>> extends org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.OperatingSystemSection.Builder<B> {
 
       private String osType;
       private URI href;

@@ -39,8 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.jclouds.dmtf.ovf.MsgType;
-import org.jclouds.dmtf.ovf.NetworkSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.MsgType;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.NetworkSection;
 import org.jclouds.vcloud.director.v1_5.AbstractVAppApiLiveTest;
 import org.jclouds.vcloud.director.v1_5.domain.Link;
 import org.jclouds.vcloud.director.v1_5.domain.Link.Rel;

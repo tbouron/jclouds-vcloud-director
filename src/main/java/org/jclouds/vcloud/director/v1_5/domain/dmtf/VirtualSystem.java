@@ -18,7 +18,7 @@ package org.jclouds.vcloud.director.v1_5.domain.dmtf;
 
 import static com.google.common.base.Objects.equal;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.jclouds.dmtf.DMTFConstants.OVF_NS;
+import static org.jclouds.vcloud.director.v1_5.domain.dmtf.DMTFConstants.OVF_NS;
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorConstants.VCLOUD_1_5_NS;
 
 import java.util.Set;
@@ -26,9 +26,9 @@ import java.util.Set;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.jclouds.dmtf.ovf.SectionType;
-import org.jclouds.dmtf.ovf.VirtualHardwareSection;
-import org.jclouds.dmtf.ovf.internal.BaseVirtualSystem;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.SectionType;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.VirtualHardwareSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.internal.BaseVirtualSystem;
 import org.jclouds.vcloud.director.v1_5.domain.section.GuestCustomizationSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.NetworkConnectionSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.OperatingSystemSection;

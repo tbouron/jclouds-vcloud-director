@@ -28,7 +28,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
-import org.jclouds.dmtf.ovf.SectionType;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.SectionType;
 import org.jclouds.vcloud.director.v1_5.domain.Link;
 import org.jclouds.vcloud.director.v1_5.domain.network.NetworkConnection;
 

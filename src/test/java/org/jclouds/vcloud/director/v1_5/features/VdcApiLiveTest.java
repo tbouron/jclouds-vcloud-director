@@ -29,7 +29,7 @@ import static org.testng.Assert.fail;
 import java.util.Map;
 import java.util.Set;
 
-import org.jclouds.dmtf.ovf.MsgType;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.MsgType;
 import org.jclouds.vcloud.director.v1_5.domain.Checks;
 import org.jclouds.vcloud.director.v1_5.domain.Metadata;
 import org.jclouds.vcloud.director.v1_5.domain.Reference;

@@ -18,8 +18,8 @@ package org.jclouds.vcloud.director.v1_5.features.systemadmin;
 
 //import java.net.URI;
 //
-//import org.jclouds.dmtf.ovf.NetworkSection;
-//import org.jclouds.dmtf.ovf.StartupSection;
+//import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.NetworkSection;
+//import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.StartupSection;
 //import org.jclouds.vcloud.director.v1_5.domain.Error;
 //import org.jclouds.vcloud.director.v1_5.domain.Link;
 //import org.jclouds.vcloud.director.v1_5.domain.Owner;

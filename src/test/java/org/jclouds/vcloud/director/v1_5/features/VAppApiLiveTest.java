@@ -45,10 +45,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.jclouds.dmtf.ovf.MsgType;
-import org.jclouds.dmtf.ovf.NetworkSection;
-import org.jclouds.dmtf.ovf.ProductSection;
-import org.jclouds.dmtf.ovf.StartupSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.MsgType;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.NetworkSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.ProductSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.StartupSection;
 import org.jclouds.vcloud.director.v1_5.AbstractVAppApiLiveTest;
 import org.jclouds.vcloud.director.v1_5.domain.AccessSetting;
 import org.jclouds.vcloud.director.v1_5.domain.Checks;

@@ -21,8 +21,8 @@ package org.jclouds.vcloud.director.v1_5.features;
 //import java.net.URI;
 //
 //import com.google.common.net.HttpHeaders;
-//import org.jclouds.dmtf.ovf.NetworkSection;
-//import org.jclouds.dmtf.ovf.StartupSection;
+//import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.NetworkSection;
+//import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.StartupSection;
 //import org.jclouds.http.HttpRequest;
 //import org.jclouds.http.HttpResponse;
 //import org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType;

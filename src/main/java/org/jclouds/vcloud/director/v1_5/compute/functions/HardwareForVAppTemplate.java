@@ -25,7 +25,7 @@ import javax.inject.Singleton;
 import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.HardwareBuilder;
 import org.jclouds.compute.predicates.ImagePredicates;
-import org.jclouds.dmtf.ovf.VirtualHardwareSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.VirtualHardwareSection;
 import org.jclouds.logging.Logger;
 import org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType;
 import org.jclouds.vcloud.director.v1_5.domain.Link;

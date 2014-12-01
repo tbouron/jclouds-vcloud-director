@@ -36,7 +36,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
 import org.jclouds.Fallbacks.NullOnNotFoundOr404;
-import org.jclouds.dmtf.ovf.NetworkSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.NetworkSection;
 import org.jclouds.rest.annotations.BinderParam;
 import org.jclouds.rest.annotations.EndpointParam;
 import org.jclouds.rest.annotations.Fallback;

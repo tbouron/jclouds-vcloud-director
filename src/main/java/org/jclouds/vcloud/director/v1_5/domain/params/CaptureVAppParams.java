@@ -28,12 +28,12 @@ import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import org.jclouds.dmtf.ovf.DeploymentOptionSection;
-import org.jclouds.dmtf.ovf.DiskSection;
-import org.jclouds.dmtf.ovf.NetworkSection;
-import org.jclouds.dmtf.ovf.ProductSection;
-import org.jclouds.dmtf.ovf.SectionType;
-import org.jclouds.dmtf.ovf.StartupSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.DeploymentOptionSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.DiskSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.NetworkSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.ProductSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.SectionType;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.StartupSection;
 import org.jclouds.vcloud.director.v1_5.domain.Reference;
 import org.jclouds.vcloud.director.v1_5.domain.section.CustomizationSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.GuestCustomizationSection;

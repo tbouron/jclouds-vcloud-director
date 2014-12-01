@@ -16,7 +16,7 @@
  */
 package org.jclouds.vcloud.director.v1_5.domain.dmtf;
 
-import static org.jclouds.dmtf.DMTFConstants.OVF_NS;
+import static org.jclouds.vcloud.director.v1_5.domain.dmtf.DMTFConstants.OVF_NS;
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorConstants.VCLOUD_1_5_NS;
 
 import java.util.Set;
@@ -24,9 +24,9 @@ import java.util.Set;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.jclouds.dmtf.ovf.DiskSection;
-import org.jclouds.dmtf.ovf.NetworkSection;
-import org.jclouds.dmtf.ovf.ReferencesType;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.DiskSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.NetworkSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.ReferencesType;
 import org.jclouds.vcloud.director.v1_5.domain.section.CustomizationSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.LeaseSettingsSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.NetworkConfigSection;

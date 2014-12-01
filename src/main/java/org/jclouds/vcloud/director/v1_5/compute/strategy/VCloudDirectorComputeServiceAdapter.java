@@ -41,7 +41,7 @@ import org.jclouds.compute.domain.HardwareBuilder;
 import org.jclouds.compute.domain.Processor;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.reference.ComputeServiceConstants;
-import org.jclouds.dmtf.ovf.MsgType;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.MsgType;
 import org.jclouds.domain.Location;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.logging.Logger;

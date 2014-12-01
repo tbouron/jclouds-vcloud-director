@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import org.jclouds.dmtf.ovf.SectionType;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.SectionType;
 import org.jclouds.vcloud.director.v1_5.domain.VMWareTools;
 
 import com.google.common.base.Objects;

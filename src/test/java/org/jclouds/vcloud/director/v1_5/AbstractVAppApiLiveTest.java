@@ -31,11 +31,11 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 
-import org.jclouds.dmtf.cim.CimBoolean;
-import org.jclouds.dmtf.cim.CimString;
-import org.jclouds.dmtf.cim.CimUnsignedInt;
-import org.jclouds.dmtf.cim.CimUnsignedLong;
-import org.jclouds.dmtf.ovf.MsgType;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.cim.CimBoolean;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.cim.CimString;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.cim.CimUnsignedInt;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.cim.CimUnsignedLong;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.MsgType;
 import org.jclouds.vcloud.director.v1_5.domain.AbstractVAppType;
 import org.jclouds.vcloud.director.v1_5.domain.RasdItemsList;
 import org.jclouds.vcloud.director.v1_5.domain.Reference;

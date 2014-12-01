@@ -19,8 +19,8 @@ package org.jclouds.vcloud.director.v1_5.compute.functions;
 import javax.inject.Singleton;
 
 import org.jclouds.compute.domain.Volume;
-import org.jclouds.dmtf.cim.ResourceAllocationSettingData;
-import org.jclouds.dmtf.cim.functions.HardwareBuilderFromResourceAllocations;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.cim.ResourceAllocationSettingData;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.cim.functions.HardwareBuilderFromResourceAllocations;
 
 @Singleton
 public class VCloudHardwareBuilderFromResourceAllocations extends HardwareBuilderFromResourceAllocations {

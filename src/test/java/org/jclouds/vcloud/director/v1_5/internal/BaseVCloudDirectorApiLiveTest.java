@@ -54,7 +54,7 @@ import javax.inject.Inject;
 import org.jclouds.ContextBuilder;
 import org.jclouds.apis.BaseApiLiveTest;
 import org.jclouds.date.DateService;
-import org.jclouds.dmtf.ovf.MsgType;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.MsgType;
 import org.jclouds.io.Payloads;
 import org.jclouds.logging.Logger;
 import org.jclouds.providers.AnonymousProviderMetadata;

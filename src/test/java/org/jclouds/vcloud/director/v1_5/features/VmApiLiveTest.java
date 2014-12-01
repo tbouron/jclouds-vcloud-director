@@ -48,10 +48,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.jclouds.dmtf.cim.OSType;
-import org.jclouds.dmtf.cim.ResourceAllocationSettingData;
-import org.jclouds.dmtf.ovf.MsgType;
-import org.jclouds.dmtf.ovf.ProductSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.cim.OSType;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.cim.ResourceAllocationSettingData;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.MsgType;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.ProductSection;
 import org.jclouds.vcloud.director.v1_5.AbstractVAppApiLiveTest;
 import org.jclouds.vcloud.director.v1_5.domain.Checks;
 import org.jclouds.vcloud.director.v1_5.domain.Metadata;

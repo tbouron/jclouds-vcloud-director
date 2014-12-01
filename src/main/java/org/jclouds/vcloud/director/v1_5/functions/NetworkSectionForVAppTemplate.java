@@ -18,8 +18,8 @@ package org.jclouds.vcloud.director.v1_5.functions;
 
 import javax.inject.Singleton;
 
-import org.jclouds.dmtf.ovf.SectionType;
-import org.jclouds.dmtf.ovf.NetworkSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.SectionType;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.NetworkSection;
 import org.jclouds.vcloud.director.v1_5.domain.VAppTemplate;
 import com.google.common.base.Function;
 

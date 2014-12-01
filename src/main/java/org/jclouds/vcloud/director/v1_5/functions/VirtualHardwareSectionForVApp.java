@@ -16,7 +16,7 @@
  */
 package org.jclouds.vcloud.director.v1_5.functions;
 
-import org.jclouds.dmtf.ovf.SectionType;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.SectionType;
 import org.jclouds.vcloud.director.v1_5.domain.AbstractVAppType;
 import org.jclouds.vcloud.director.v1_5.domain.section.VirtualHardwareSection;
 

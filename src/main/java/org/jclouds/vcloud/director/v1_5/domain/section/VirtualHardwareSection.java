@@ -18,7 +18,7 @@ package org.jclouds.vcloud.director.v1_5.domain.section;
 
 import static com.google.common.base.Objects.equal;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.jclouds.dmtf.DMTFConstants.OVF_NS;
+import static org.jclouds.vcloud.director.v1_5.domain.dmtf.DMTFConstants.OVF_NS;
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorConstants.VCLOUD_1_5_NS;
 
 import java.net.URI;
@@ -46,8 +46,8 @@ import com.google.common.collect.Sets;
  */
 @XmlRootElement(name = "VirtualHardwareSection", namespace = OVF_NS)
 @XmlType(name = "VirtualHardwareSection_Type")
-@XmlSeeAlso({ org.jclouds.dmtf.ovf.VirtualHardwareSection.class })
-public class VirtualHardwareSection extends org.jclouds.dmtf.ovf.VirtualHardwareSection {
+@XmlSeeAlso({ org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.VirtualHardwareSection.class })
+public class VirtualHardwareSection extends org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.VirtualHardwareSection {
 
    public static Builder<?> builder() {
       return new ConcreteBuilder();
@@ -61,7 +61,7 @@ public class VirtualHardwareSection extends org.jclouds.dmtf.ovf.VirtualHardware
    private static class ConcreteBuilder extends Builder<ConcreteBuilder> {
    }
    
-   public static class Builder<B extends Builder<B>> extends org.jclouds.dmtf.ovf.VirtualHardwareSection.Builder<B> {
+   public static class Builder<B extends Builder<B>> extends org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.VirtualHardwareSection.Builder<B> {
 
       private URI href;
       private String type;

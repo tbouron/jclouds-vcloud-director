@@ -27,12 +27,12 @@ import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlType;
 
-import org.jclouds.dmtf.ovf.DeploymentOptionSection;
-import org.jclouds.dmtf.ovf.DiskSection;
-import org.jclouds.dmtf.ovf.NetworkSection;
-import org.jclouds.dmtf.ovf.ProductSection;
-import org.jclouds.dmtf.ovf.SectionType;
-import org.jclouds.dmtf.ovf.StartupSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.DeploymentOptionSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.DiskSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.NetworkSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.ProductSection;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.SectionType;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.StartupSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.CustomizationSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.GuestCustomizationSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.LeaseSettingsSection;
@@ -43,7 +43,6 @@ import org.jclouds.vcloud.director.v1_5.domain.section.RuntimeInfoSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.VirtualHardwareSection;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Objects.ToStringHelper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
