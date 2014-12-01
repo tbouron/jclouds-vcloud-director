@@ -24,6 +24,9 @@ import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.ORG_NETWO
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.VAPP;
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.VAPP_TEMPLATE;
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.VDC;
+import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.name;
+import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.tryFindNetworkInOrgWithFenceMode;
+import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.tryFindNetworkNamed;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -135,14 +138,14 @@ public class VCloudDirectorComputeServiceAdapter implements
 
       if (template.getOptions().getNetworks().isEmpty()) {
          Network.FenceMode fenceMode = Network.FenceMode.NAT_ROUTED;
-         Optional<Network> optionalNetwork = tryFindNetworkInOrgWithFenceMode(org, fenceMode);
+         Optional<Network> optionalNetwork = tryFindNetworkInOrgWithFenceMode(api, org, fenceMode);
          if (!optionalNetwork.isPresent()) {
             throw new IllegalStateException("Can't find a network with fence mode: " + fenceMode + "in org " + org.getFullName());
          }
          network = optionalNetwork.get();
       } else {
          String networkName = Iterables.getOnlyElement(template.getOptions().getNetworks());
-         Optional<Network> optionalNetwork = tryFindNetworkNamed(org, networkName);
+         Optional<Network> optionalNetwork = tryFindNetworkNamed(api, org, networkName);
          if (!optionalNetwork.isPresent()) {
             throw new IllegalStateException("Can't find a network named: " + networkName + "in org " + org.getFullName());
          }
@@ -288,48 +291,6 @@ public class VCloudDirectorComputeServiceAdapter implements
               .fenceMode(Network.FenceMode.BRIDGED)
               .retainNetInfoAcrossDeployments(false)
               .build();
-   }
-
-   public static String name(String prefix) {
-      return prefix + Integer.toString(new Random().nextInt(Integer.MAX_VALUE));
-   }
-
-   public Optional<Network> tryFindNetworkInOrgWithFenceMode(Org org, final Network.FenceMode fenceMode) {
-      FluentIterable<Network> networks = FluentIterable.from(org.getLinks())
-              .filter(ReferencePredicates.typeEquals(ORG_NETWORK))
-              .transform(new Function<Link, Network>() {
-                 @Override
-                 public Network apply(Link in) {
-                    return api.getNetworkApi().get(in.getHref());
-                 }
-              });
-
-      return tryFind(networks, new Predicate<Network>() {
-         @Override
-         public boolean apply(Network input) {
-            if (input.getTasks().size() != 0) return false;
-            return input.getConfiguration().getFenceMode().equals(fenceMode);
-         }
-      });
-   }
-
-   public Optional<Network> tryFindNetworkNamed(Org org, final String networkName) {
-      FluentIterable<Network> networks = FluentIterable.from(org.getLinks())
-              .filter(ReferencePredicates.typeEquals(ORG_NETWORK))
-              .transform(new Function<Link, Network>() {
-                 @Override
-                 public Network apply(Link in) {
-                    return api.getNetworkApi().get(in.getHref());
-                 }
-              });
-
-      return tryFind(networks, new Predicate<Network>() {
-         @Override
-         public boolean apply(Network input) {
-            if (input.getTasks().size() != 0) return false;
-            return input.getName().equals(networkName);
-         }
-      });
    }
 
    @Override

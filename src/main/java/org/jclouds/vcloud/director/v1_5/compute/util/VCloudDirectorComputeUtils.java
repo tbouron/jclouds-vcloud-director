@@ -17,12 +17,19 @@
 package org.jclouds.vcloud.director.v1_5.compute.util;
 
 import static com.google.common.collect.Iterables.filter;
+import static com.google.common.collect.Iterables.find;
+import static com.google.common.collect.Iterables.tryFind;
+import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.ORG_NETWORK;
 
+import java.util.Random;
 import java.util.Set;
 
 import org.jclouds.cim.OSType;
 import org.jclouds.compute.domain.CIMOperatingSystem;
 import org.jclouds.compute.domain.OperatingSystem;
+import org.jclouds.vcloud.director.v1_5.VCloudDirectorApi;
+import org.jclouds.vcloud.director.v1_5.domain.Link;
+import org.jclouds.vcloud.director.v1_5.domain.Session;
 import org.jclouds.vcloud.director.v1_5.domain.dmtf.CIMPredicates;
 import org.jclouds.vcloud.director.v1_5.domain.dmtf.cim.ResourceAllocationSettingData;
 import org.jclouds.vcloud.director.v1_5.domain.dmtf.cim.ResourceAllocationSettingData.ResourceType;
@@ -30,15 +37,22 @@ import org.jclouds.domain.LoginCredentials;
 import org.jclouds.vcloud.director.v1_5.domain.VApp;
 import org.jclouds.vcloud.director.v1_5.domain.VAppTemplate;
 import org.jclouds.vcloud.director.v1_5.domain.Vm;
+import org.jclouds.vcloud.director.v1_5.domain.network.Network;
 import org.jclouds.vcloud.director.v1_5.domain.network.NetworkConnection;
 import org.jclouds.vcloud.director.v1_5.domain.network.VAppNetworkConfiguration;
+import org.jclouds.vcloud.director.v1_5.domain.org.Org;
 import org.jclouds.vcloud.director.v1_5.domain.section.GuestCustomizationSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.NetworkConnectionSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.OperatingSystemSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.VirtualHardwareSection;
 import org.jclouds.vcloud.director.v1_5.functions.SectionForVApp;
+import org.jclouds.vcloud.director.v1_5.predicates.ReferencePredicates;
 
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Iterables;
@@ -144,4 +158,54 @@ public class VCloudDirectorComputeUtils {
       return ips.build();
    }
 
+
+   public static String name(String prefix) {
+      return prefix + Integer.toString(new Random().nextInt(Integer.MAX_VALUE));
+   }
+
+   public static Optional<Network> tryFindNetworkInOrgWithFenceMode(final VCloudDirectorApi api, Org org, final
+   Network.FenceMode fenceMode) {
+      FluentIterable<Network> networks = FluentIterable.from(org.getLinks())
+              .filter(ReferencePredicates.typeEquals(ORG_NETWORK))
+              .transform(new Function<Link, Network>() {
+                 @Override
+                 public Network apply(Link in) {
+                    return api.getNetworkApi().get(in.getHref());
+                 }
+              });
+
+      return tryFind(networks, new Predicate<Network>() {
+         @Override
+         public boolean apply(Network input) {
+            if (input.getTasks().size() != 0) return false;
+            return input.getConfiguration().getFenceMode().equals(fenceMode);
+         }
+      });
+   }
+
+
+   public static Optional<Network> tryFindNetworkNamed(final VCloudDirectorApi api, Org org, final String networkName) {
+      FluentIterable<Network> networks = FluentIterable.from(org.getLinks())
+              .filter(ReferencePredicates.typeEquals(ORG_NETWORK))
+              .transform(new Function<Link, Network>() {
+                 @Override
+                 public Network apply(Link in) {
+                    return api.getNetworkApi().get(in.getHref());
+                 }
+              });
+
+      return tryFind(networks, new Predicate<Network>() {
+         @Override
+         public boolean apply(Network input) {
+            if (input.getTasks().size() != 0) return false;
+            return input.getName().equals(networkName);
+         }
+      });
+   }
+
+   public static Optional<Network> tryFindNetworkNamedInCurrentOrg(final VCloudDirectorApi api, final String networkName) {
+      Session session = api.getCurrentSession();
+      final Org org = api.getOrgApi().get(find(api.getOrgApi().list(), ReferencePredicates.nameEquals(session.get())).getHref());
+      return tryFindNetworkNamed(api, org, networkName);
+   }
 }
