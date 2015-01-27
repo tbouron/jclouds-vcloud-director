@@ -1,5 +1,7 @@
 jclouds-vcloud-director
 =======================
+[![Build Status](https://api.travis-ci.org/cloudsoft/jclouds-vcloud-director.svg?branch=1.8.x)](https://travis-ci.org/cloudsoft/jclouds-vcloud-director)
+-----------------------
 
 In order to release a new version:
 
