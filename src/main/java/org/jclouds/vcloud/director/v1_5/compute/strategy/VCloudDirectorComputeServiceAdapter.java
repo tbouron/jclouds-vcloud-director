@@ -18,19 +18,13 @@ package org.jclouds.vcloud.director.v1_5.compute.strategy;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.find;
-import static com.google.common.collect.Iterables.tryFind;
 import static org.jclouds.util.Predicates2.retry;
-import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.ORG_NETWORK;
-import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.VAPP;
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.VAPP_TEMPLATE;
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.VDC;
 import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.name;
 import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.tryFindNetworkInOrgWithFenceMode;
 import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.tryFindNetworkNamed;
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -44,7 +38,6 @@ import org.jclouds.compute.domain.HardwareBuilder;
 import org.jclouds.compute.domain.Processor;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.reference.ComputeServiceConstants;
-import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.MsgType;
 import org.jclouds.domain.Location;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.logging.Logger;
@@ -52,36 +45,21 @@ import org.jclouds.vcloud.director.v1_5.VCloudDirectorApi;
 import org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils;
 import org.jclouds.vcloud.director.v1_5.domain.Link;
 import org.jclouds.vcloud.director.v1_5.domain.Reference;
-import org.jclouds.vcloud.director.v1_5.domain.ResourceEntity;
 import org.jclouds.vcloud.director.v1_5.domain.Session;
 import org.jclouds.vcloud.director.v1_5.domain.Task;
 import org.jclouds.vcloud.director.v1_5.domain.VApp;
 import org.jclouds.vcloud.director.v1_5.domain.VAppTemplate;
 import org.jclouds.vcloud.director.v1_5.domain.Vdc;
 import org.jclouds.vcloud.director.v1_5.domain.Vm;
-import org.jclouds.vcloud.director.v1_5.domain.network.FirewallRule;
-import org.jclouds.vcloud.director.v1_5.domain.network.FirewallRuleProtocols;
-import org.jclouds.vcloud.director.v1_5.domain.network.FirewallService;
-import org.jclouds.vcloud.director.v1_5.domain.network.IpRange;
-import org.jclouds.vcloud.director.v1_5.domain.network.IpRanges;
-import org.jclouds.vcloud.director.v1_5.domain.network.IpScope;
-import org.jclouds.vcloud.director.v1_5.domain.network.IpScopes;
-import org.jclouds.vcloud.director.v1_5.domain.network.NatService;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.MsgType;
 import org.jclouds.vcloud.director.v1_5.domain.network.Network;
 import org.jclouds.vcloud.director.v1_5.domain.network.NetworkAssignment;
 import org.jclouds.vcloud.director.v1_5.domain.network.NetworkConfiguration;
 import org.jclouds.vcloud.director.v1_5.domain.network.NetworkConnection;
-import org.jclouds.vcloud.director.v1_5.domain.network.NetworkFeatures;
-import org.jclouds.vcloud.director.v1_5.domain.network.NetworkServiceType;
-import org.jclouds.vcloud.director.v1_5.domain.network.RouterInfo;
 import org.jclouds.vcloud.director.v1_5.domain.network.VAppNetworkConfiguration;
 import org.jclouds.vcloud.director.v1_5.domain.org.Org;
 import org.jclouds.vcloud.director.v1_5.domain.params.ComposeVAppParams;
-import org.jclouds.vcloud.director.v1_5.domain.params.DeployVAppParams;
-import org.jclouds.vcloud.director.v1_5.domain.params.InstantiateVAppParams;
-import org.jclouds.vcloud.director.v1_5.domain.params.InstantiateVAppTemplateParams;
 import org.jclouds.vcloud.director.v1_5.domain.params.InstantiationParams;
-import org.jclouds.vcloud.director.v1_5.domain.params.RecomposeVAppParams;
 import org.jclouds.vcloud.director.v1_5.domain.params.SourcedCompositionItemParam;
 import org.jclouds.vcloud.director.v1_5.domain.params.UndeployVAppParams;
 import org.jclouds.vcloud.director.v1_5.domain.section.GuestCustomizationSection;
@@ -90,7 +68,6 @@ import org.jclouds.vcloud.director.v1_5.domain.section.NetworkConnectionSection;
 import org.jclouds.vcloud.director.v1_5.predicates.ReferencePredicates;
 import org.jclouds.vcloud.director.v1_5.predicates.TaskSuccess;
 
-import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
@@ -99,7 +76,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -122,6 +98,7 @@ public class VCloudDirectorComputeServiceAdapter implements
    @Inject
    public VCloudDirectorComputeServiceAdapter(VCloudDirectorApi api) {
       this.api = checkNotNull(api, "api");
+      retryTaskSuccess = retry(new TaskSuccess(api.getTaskApi()), TASK_TIMEOUT_SECONDS * 1000L);
    }
 
    @Override
@@ -171,14 +148,14 @@ public class VCloudDirectorComputeServiceAdapter implements
               .build();
       VApp vApp = api.getVdcApi().composeVApp(vdcUrn, compositionParams);
       Task compositionTask = Iterables.getFirst(vApp.getTasks(), null);
-      retryTaskSuccess = retry(new TaskSuccess(api.getTaskApi()), TASK_TIMEOUT_SECONDS * 1000L);
+
       logger.debug(">> awaiting vApp(%s) deployment", vApp.getId());
       boolean vAppDeployed = retryTaskSuccess.apply(compositionTask);
       logger.trace("<< vApp(%s) deployment completed(%s)", vApp.getId(), vAppDeployed);
 
       if (!vApp.getTasks().isEmpty()) {
          for (Task task : vApp.getTasks()) {
-            retryTaskSuccess = retry(new TaskSuccess(api.getTaskApi()), TASK_TIMEOUT_SECONDS * 1000L);
+
             logger.debug(">> awaiting vApp(%s) deployment", vApp.getId());
             boolean vmReady = retryTaskSuccess.apply(task);
             logger.trace("<< vApp(%s) deployment completed(%s)", vApp.getId(), vmReady);
@@ -366,37 +343,43 @@ public class VCloudDirectorComputeServiceAdapter implements
 
    @Override
    public void destroyNode(String id) {
-      if (api.getVmApi().get(id).getStatus() == ResourceEntity.Status.POWERED_ON) {
-         URI vAppRef = null;
-         for (Link link : api.getVmApi().get(id).getLinks()) {
-            if (link.getRel() != null && link.getRel().value().equalsIgnoreCase("up")) {
-               vAppRef = link.getHref();
-            }
-         }
-         VApp vApp = api.getVAppApi().get(vAppRef);
-         if (!vApp.getTasks().isEmpty()) {
-            for (Task task : vApp.getTasks()) {
-               retryTaskSuccess = retry(new TaskSuccess(api.getTaskApi()), TASK_TIMEOUT_SECONDS * 1000L);
-               logger.debug(">> awaiting vApp(%s) tasks completion", vApp.getId());
-               boolean vAppDeployed = retryTaskSuccess.apply(task);
-               logger.trace("<< vApp(%s) tasks completions(%s)", vApp.getId(), vAppDeployed);
-            }
-         }
-         UndeployVAppParams params = UndeployVAppParams.builder()
-                 .undeployPowerAction(UndeployVAppParams.PowerAction.POWER_OFF)
-                 .build();
-         Task undeployTask = api.getVAppApi().undeploy(vAppRef, params);
-         retryTaskSuccess = retry(new TaskSuccess(api.getTaskApi()), TASK_TIMEOUT_SECONDS * 1000L);
-         logger.debug(">> awaiting vApp(%s) undeploy completion", vApp.getId());
-         boolean vAppUndeployed = retryTaskSuccess.apply(undeployTask);
-         logger.trace("<< vApp(%s) undeploy completions(%s)", vApp.getId(), vAppUndeployed);
+      Vm vm = api.getVmApi().get(id);
+      URI vAppRef;
 
-         Task removeTask = api.getVAppApi().remove(vAppRef);
-         retryTaskSuccess = retry(new TaskSuccess(api.getTaskApi()), TASK_TIMEOUT_SECONDS * 1000L);
-         logger.debug(">> awaiting vApp(%s) remove completion", vApp.getId());
-         boolean vAppRemoved = retryTaskSuccess.apply(removeTask);
-         logger.trace("<< vApp(%s) remove completions(%s)", vApp.getId(), vAppRemoved);
+      Optional<Link> optionalLink = Iterables.tryFind(vm.getLinks(), new Predicate<Link>() {
+         @Override
+         public boolean apply(Link link) {
+            return link.getRel() != null && link.getRel() == Link.Rel.UP;
+         }
+      });
+      if (!optionalLink.isPresent()) {
+         logger.error("Cannot find the vAppRef that contains the vm with id(%s).", id);
+         throw new IllegalStateException("Cannot find the vAppRef that contains the vm with id("+id+")");
       }
+      vAppRef = optionalLink.get().getHref();
+      VApp vApp = api.getVAppApi().get(vAppRef);
+
+      logger.debug("Deleting vApp(%s) that contains VM(%s) ...", vApp.getName(), vm.getName());
+      if (!vApp.getTasks().isEmpty()) {
+         for (Task task : vApp.getTasks()) {
+            logger.debug(">> awaiting vApp(%s) tasks completion", vApp.getId());
+            boolean vAppDeployed = retryTaskSuccess.apply(task);
+            logger.trace("<< vApp(%s) tasks completions(%s)", vApp.getId(), vAppDeployed);
+         }
+      }
+      UndeployVAppParams params = UndeployVAppParams.builder()
+              .undeployPowerAction(UndeployVAppParams.PowerAction.POWER_OFF)
+              .build();
+      Task undeployTask = api.getVAppApi().undeploy(vAppRef, params);
+      logger.debug(">> awaiting vApp(%s) undeploy completion", vApp.getId());
+      boolean vAppUndeployed = retryTaskSuccess.apply(undeployTask);
+      logger.trace("<< vApp(%s) undeploy completions(%s)", vApp.getId(), vAppUndeployed);
+
+      Task removeTask = api.getVAppApi().remove(vAppRef);
+      logger.debug(">> awaiting vApp(%s) remove completion", vApp.getId());
+      boolean vAppRemoved = retryTaskSuccess.apply(removeTask);
+      logger.trace("<< vApp(%s) remove completions(%s)", vApp.getId(), vAppRemoved);
+      logger.debug("vApp(%s) deleted", vApp.getName());
    }
 
    @Override

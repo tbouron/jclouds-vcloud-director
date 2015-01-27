@@ -24,12 +24,10 @@ import java.util.Random;
 
 import org.jclouds.compute.ComputeServiceAdapter;
 import org.jclouds.compute.domain.Hardware;
-import org.jclouds.compute.domain.OsFamily;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.domain.TemplateBuilder;
 import org.jclouds.sshj.config.SshjSshClientModule;
 import org.jclouds.vcloud.director.v1_5.VCloudDirectorApi;
-import org.jclouds.vcloud.director.v1_5.domain.VApp;
 import org.jclouds.vcloud.director.v1_5.domain.Vm;
 import org.jclouds.vcloud.director.v1_5.internal.BaseVCloudDirectorApiLiveTest;
 import org.testng.annotations.AfterGroups;
@@ -82,7 +80,7 @@ public class VCloudDirectorComputeServiceAdapterLiveTest extends BaseVCloudDirec
    @AfterGroups(groups = "live")
    protected void tearDown() {
       if (guest != null) {
-         adapter.destroyNode(guest.getNode().getId() + "");
+         adapter.destroyNode(guest.getNode().getId());
       }
       super.tearDown();
    }
