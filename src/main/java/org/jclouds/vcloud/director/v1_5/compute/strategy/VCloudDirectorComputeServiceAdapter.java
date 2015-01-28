@@ -43,6 +43,7 @@ import org.jclouds.domain.LoginCredentials;
 import org.jclouds.logging.Logger;
 import org.jclouds.vcloud.director.v1_5.VCloudDirectorApi;
 import org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils;
+import org.jclouds.vcloud.director.v1_5.domain.CatalogItem;
 import org.jclouds.vcloud.director.v1_5.domain.Link;
 import org.jclouds.vcloud.director.v1_5.domain.Reference;
 import org.jclouds.vcloud.director.v1_5.domain.Session;
@@ -62,6 +63,8 @@ import org.jclouds.vcloud.director.v1_5.domain.params.ComposeVAppParams;
 import org.jclouds.vcloud.director.v1_5.domain.params.InstantiationParams;
 import org.jclouds.vcloud.director.v1_5.domain.params.SourcedCompositionItemParam;
 import org.jclouds.vcloud.director.v1_5.domain.params.UndeployVAppParams;
+import org.jclouds.vcloud.director.v1_5.domain.query.QueryResultRecordType;
+import org.jclouds.vcloud.director.v1_5.domain.query.QueryResultRecords;
 import org.jclouds.vcloud.director.v1_5.domain.section.GuestCustomizationSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.NetworkConfigSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.NetworkConnectionSection;
@@ -283,9 +286,22 @@ public class VCloudDirectorComputeServiceAdapter implements
 
    @Override
    public Set<VAppTemplate> listImages() {
+
+      Set<VAppTemplate> publicVAppTemplates = Sets.newHashSet();
+      QueryResultRecords queryResult = api.getAdminQueryApi().catalogsQueryAll();
+      for (URI uri : toHrefs(queryResult)) {
+         for (Reference reference : api.getCatalogApi().get(uri).getCatalogItems()) {
+            CatalogItem item = api.getCatalogApi().getItem(reference.getHref());
+            if (item.getEntity().getType().equals(VAPP_TEMPLATE)) {
+               VAppTemplate vAppTemplate = api.getVAppTemplateApi().get(item.getEntity().getHref());
+               publicVAppTemplates.add(vAppTemplate);
+            }
+         }
+      }
+
       Org org = getOrgForSession();
       Vdc vdc = api.getVdcApi().get(find(org.getLinks(), ReferencePredicates.<Link>typeEquals(VDC)).getHref());
-      return FluentIterable.from(vdc.getResourceEntities())
+      Set<VAppTemplate> vAppTemplates = FluentIterable.from(vdc.getResourceEntities())
               .filter(ReferencePredicates.typeEquals(VAPP_TEMPLATE))
               .transform(new Function<Reference, VAppTemplate>() {
 
@@ -295,6 +311,7 @@ public class VCloudDirectorComputeServiceAdapter implements
                  }
               })
               .filter(Predicates.notNull()).toSet();
+      return vAppTemplates;
    }
 
    private Set<Vm> getAvailableVMsFromVAppTemplate(VAppTemplate vAppTemplate) {
@@ -395,6 +412,14 @@ public class VCloudDirectorComputeServiceAdapter implements
    @Override
    public void suspendNode(String id) {
       api.getVmApi().suspend(id);
+   }
+
+   private Set<URI> toHrefs(QueryResultRecords queryResult) {
+      Set<URI> hrefs = Sets.newLinkedHashSet();
+      for (QueryResultRecordType record : queryResult.getRecords()) {
+         hrefs.add(record.getHref());
+      }
+      return hrefs;
    }
 
 }
