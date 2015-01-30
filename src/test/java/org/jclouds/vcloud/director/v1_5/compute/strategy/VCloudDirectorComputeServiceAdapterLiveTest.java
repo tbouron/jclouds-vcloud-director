@@ -58,11 +58,11 @@ public class VCloudDirectorComputeServiceAdapterLiveTest extends BaseVCloudDirec
       String name = "vm-" + new Random().nextInt();
 
       Template template = templateBuilder
-              //.osFamily(OsFamily.CENTOS)
-              .imageNameMatches("centos6.4x64")
+              //.imageNameMatches("centos6.4x64")
+              .imageNameMatches("cloudsoft-template")
               .build();
 
-      template.getOptions().networks("Deployment_Network_01");
+      //template.getOptions().networks("Deployment_Network_01");
 
       guest = adapter.createNodeWithGroupEncodedIntoName(group, name, template);
       assertEquals(guest.getNodeId(), guest.getNode().getId() + "");
