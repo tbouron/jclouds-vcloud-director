@@ -294,7 +294,14 @@ public class VCloudDirectorComputeServiceAdapter implements
                     return api.getVAppTemplateApi().get(in.getHref());
                  }
               })
-              .filter(Predicates.notNull()).toSet();
+              .filter(Predicates.notNull())
+              .filter(new Predicate<VAppTemplate>() {
+                 @Override
+                 public boolean apply(VAppTemplate input) {
+                    return input.getTasks().isEmpty();
+                 }
+              })
+              .toSet();
    }
 
    private Set<Vm> getAvailableVMsFromVAppTemplate(VAppTemplate vAppTemplate) {
