@@ -45,6 +45,7 @@ import org.jclouds.vcloud.director.v1_5.VCloudDirectorApi;
 import org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils;
 import org.jclouds.vcloud.director.v1_5.domain.Link;
 import org.jclouds.vcloud.director.v1_5.domain.Reference;
+import org.jclouds.vcloud.director.v1_5.domain.ResourceEntity;
 import org.jclouds.vcloud.director.v1_5.domain.Session;
 import org.jclouds.vcloud.director.v1_5.domain.Task;
 import org.jclouds.vcloud.director.v1_5.domain.VApp;
@@ -299,6 +300,12 @@ public class VCloudDirectorComputeServiceAdapter implements
                  @Override
                  public boolean apply(VAppTemplate input) {
                     return input.getTasks().isEmpty();
+                 }
+              })
+              .filter(new Predicate<VAppTemplate>() {
+                 @Override
+                 public boolean apply(VAppTemplate input) {
+                    return input.getStatus() == ResourceEntity.Status.POWERED_OFF;
                  }
               })
               .toSet();
