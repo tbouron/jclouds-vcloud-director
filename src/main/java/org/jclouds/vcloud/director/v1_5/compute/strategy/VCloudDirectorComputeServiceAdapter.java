@@ -45,6 +45,7 @@ import org.jclouds.vcloud.director.v1_5.VCloudDirectorApi;
 import org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils;
 import org.jclouds.vcloud.director.v1_5.domain.Link;
 import org.jclouds.vcloud.director.v1_5.domain.Reference;
+import org.jclouds.vcloud.director.v1_5.domain.ResourceEntity;
 import org.jclouds.vcloud.director.v1_5.domain.Session;
 import org.jclouds.vcloud.director.v1_5.domain.Task;
 import org.jclouds.vcloud.director.v1_5.domain.VApp;
@@ -62,6 +63,9 @@ import org.jclouds.vcloud.director.v1_5.domain.params.ComposeVAppParams;
 import org.jclouds.vcloud.director.v1_5.domain.params.InstantiationParams;
 import org.jclouds.vcloud.director.v1_5.domain.params.SourcedCompositionItemParam;
 import org.jclouds.vcloud.director.v1_5.domain.params.UndeployVAppParams;
+import org.jclouds.vcloud.director.v1_5.domain.query.QueryResultRecordType;
+import org.jclouds.vcloud.director.v1_5.domain.query.QueryResultRecords;
+import org.jclouds.vcloud.director.v1_5.domain.query.QueryResultVMRecord;
 import org.jclouds.vcloud.director.v1_5.domain.section.GuestCustomizationSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.NetworkConfigSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.NetworkConnectionSection;
@@ -301,6 +305,12 @@ public class VCloudDirectorComputeServiceAdapter implements
                     return input.getTasks().isEmpty();
                  }
               })
+              .filter(new Predicate<VAppTemplate>() {
+                 @Override
+                 public boolean apply(VAppTemplate input) {
+                    return input.getStatus() == ResourceEntity.Status.POWERED_OFF;
+                 }
+              })
               .toSet();
    }
 
@@ -330,7 +340,17 @@ public class VCloudDirectorComputeServiceAdapter implements
 
    @Override
    public Iterable<Vm> listNodes() {
-      return Sets.newHashSet();
+      Set<Vm> vms = Sets.newLinkedHashSet();
+      QueryResultRecords result = api.getQueryApi().vmsQueryAll();
+      for (QueryResultRecordType record : result.getRecords()) {
+         if (record instanceof QueryResultVMRecord) {
+            QueryResultVMRecord queryResultVMRecord = (QueryResultVMRecord) record;
+            if (!queryResultVMRecord.isVAppTemplate()) {
+               vms.add(api.getVmApi().get(record.getHref()));
+            }
+         }
+      }
+      return vms;
    }
 
    @Override
@@ -351,6 +371,7 @@ public class VCloudDirectorComputeServiceAdapter implements
    @Override
    public void destroyNode(String id) {
       Vm vm = api.getVmApi().get(id);
+      if (vm == null) return;
       URI vAppRef;
 
       Optional<Link> optionalLink = Iterables.tryFind(vm.getLinks(), new Predicate<Link>() {
