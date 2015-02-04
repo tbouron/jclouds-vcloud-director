@@ -39,24 +39,10 @@ public class EnvelopeTest {
    public void testUnmarshallEnvelope() throws JAXBException {
       Unmarshaller unmarshaller = jc.createUnmarshaller();
       unmarshaller.setEventHandler(new javax.xml.bind.helpers.DefaultValidationEventHandler());
-      File xml = new File("vcloud-director/src/test/resources/dmtf/envelope.xml");
+      File xml = new File("src/test/resources/dmtf/envelope.xml");
       Envelope envelope = (Envelope) unmarshaller.unmarshal(xml);
-      System.out.println(envelope);
+      assertNotNull(envelope);
    }
 
-   /*
-   public void testMarshallEnvelope() throws JAXBException {
-      Marshaller marshaller = jc.createMarshaller();
-      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-      EnvelopeType envelope = EnvelopeType.builder()
-              .references(new ReferencesType())
-              .virtualSystem(
-                      VirtualSystemType.builder()
-                              .operatingSystemSection(OperatingSystemSection.builder().osType("windows7Server64Guest").build())
-                              .build())
-              .build();
-      marshaller.marshal(envelope, System.out);
-   }
-   */
 
 }
