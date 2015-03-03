@@ -22,7 +22,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name="ContainerType")
+@XmlType(name = "ContainerType")
 public class ContainerType extends ResourceType {
 
   @XmlAttribute
@@ -37,43 +37,36 @@ public class ContainerType extends ResourceType {
   @XmlAttribute
   protected Long total;
 
-  public String getName()
-  {
+  public String getName() {
     return this.name;
   }
 
-  public void setName(String value)
-  {
+  public void setName(String value) {
     this.name = value;
   }
 
-  public Integer getPage()
-  {
+  public Integer getPage() {
     return this.page;
   }
 
-  public void setPage(Integer value)
-  {
+  public void setPage(Integer value) {
     this.page = value;
   }
 
-  public Integer getPageSize()
-  {
+  public Integer getPageSize() {
     return this.pageSize;
   }
 
-  public void setPageSize(Integer value)
-  {
+  public void setPageSize(Integer value) {
     this.pageSize = value;
   }
 
-  public Long getTotal()
-  {
+  public Long getTotal() {
     return this.total;
   }
 
-  public void setTotal(Long value)
-  {
+  public void setTotal(Long value) {
     this.total = value;
   }
+
 }

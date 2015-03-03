@@ -29,11 +29,10 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name="VCloudExtensionType", propOrder={"any"})
-public class VCloudExtensionType
-{
+@XmlType(name = "VCloudExtensionType", propOrder = { "any" })
+public class VCloudExtensionType {
 
-  @XmlAnyElement(lax=true)
+  @XmlAnyElement(lax = true)
   protected List<Object> any;
 
   @XmlAttribute
@@ -42,29 +41,26 @@ public class VCloudExtensionType
   @XmlAnyAttribute
   private Map<QName, String> otherAttributes = new HashMap();
 
-  public List<Object> getAny()
-  {
+  public List<Object> getAny() {
     if (this.any == null) {
       this.any = new ArrayList();
     }
     return this.any;
   }
 
-  public boolean isRequired()
-  {
+  public boolean isRequired() {
     if (this.required == null) {
       return true;
     }
     return this.required.booleanValue();
   }
 
-  public void setRequired(Boolean value)
-  {
+  public void setRequired(Boolean value) {
     this.required = value;
   }
 
-  public Map<QName, String> getOtherAttributes()
-  {
+  public Map<QName, String> getOtherAttributes() {
     return this.otherAttributes;
   }
+
 }

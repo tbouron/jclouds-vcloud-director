@@ -22,10 +22,10 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name="ReferenceType")
+@XmlType(name = "ReferenceType")
 public class ReferenceType extends VCloudExtensibleType {
 
-  @XmlAttribute(required=true)
+  @XmlAttribute(required = true)
   protected String href;
 
   @XmlAttribute
@@ -37,43 +37,36 @@ public class ReferenceType extends VCloudExtensibleType {
   @XmlAttribute
   protected String type;
 
-  public String getHref()
-  {
+  public String getHref() {
     return this.href;
   }
 
-  public void setHref(String value)
-  {
+  public void setHref(String value) {
     this.href = value;
   }
 
-  public String getId()
-  {
+  public String getId() {
     return this.id;
   }
 
-  public void setId(String value)
-  {
+  public void setId(String value) {
     this.id = value;
   }
 
-  public String getName()
-  {
+  public String getName() {
     return this.name;
   }
 
-  public void setName(String value)
-  {
+  public void setName(String value) {
     this.name = value;
   }
 
-  public String getType()
-  {
+  public String getType() {
     return this.type;
   }
 
-  public void setType(String value)
-  {
+  public void setType(String value) {
     this.type = value;
   }
+
 }

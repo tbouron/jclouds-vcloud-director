@@ -28,26 +28,24 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name="VCloudExtensibleType", propOrder={"vCloudExtension"})
-public abstract class VCloudExtensibleType
-{
+@XmlType(name = "VCloudExtensibleType", propOrder = { "vCloudExtension" })
+public abstract class VCloudExtensibleType {
 
-  @XmlElement(name="VCloudExtension")
+  @XmlElement(name = "VCloudExtension")
   protected List<VCloudExtensionType> vCloudExtension;
 
   @XmlAnyAttribute
   private Map<QName, String> otherAttributes = new HashMap();
 
-  public List<VCloudExtensionType> getVCloudExtension()
-  {
+  public List<VCloudExtensionType> getVCloudExtension() {
     if (this.vCloudExtension == null) {
       this.vCloudExtension = new ArrayList();
     }
     return this.vCloudExtension;
   }
 
-  public Map<QName, String> getOtherAttributes()
-  {
+  public Map<QName, String> getOtherAttributes() {
     return this.otherAttributes;
   }
+
 }

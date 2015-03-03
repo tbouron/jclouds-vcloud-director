@@ -561,7 +561,7 @@ public class ResourceAllocationSettingData {
    @XmlElement(name = "HostResource", namespace = CIM_RASD_NS)
    private Set<CimString> hostResources = Sets.newLinkedHashSet();
 
-   @XmlAnyElement(lax=true)
+   @XmlAnyElement(lax = true)
    private List<Object> any;
 
    protected ResourceAllocationSettingData(Builder<?> builder) {

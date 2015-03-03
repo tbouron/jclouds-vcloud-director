@@ -361,7 +361,7 @@ public class VCloudDirectorComputeServiceAdapter implements
       });
       if (!optionalLink.isPresent()) {
          logger.error("Cannot find the vAppRef that contains the vm with id(%s).", id);
-         throw new IllegalStateException("Cannot find the vAppRef that contains the vm with id("+id+")");
+         throw new IllegalStateException("Cannot find the vAppRef that contains the vm with id(" + id + ")");
       }
       vAppRef = optionalLink.get().getHref();
       VApp vApp = api.getVAppApi().get(vAppRef);

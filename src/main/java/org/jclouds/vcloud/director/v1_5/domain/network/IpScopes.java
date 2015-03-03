@@ -17,9 +17,9 @@
 package org.jclouds.vcloud.director.v1_5.domain.network;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -27,9 +27,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 @XmlRootElement(name = "IpScopes")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -79,4 +77,5 @@ public class IpScopes {
    public IpScopes(List<IpScope> ipScopes) {
       this.ipsScopes = ImmutableList.copyOf(ipScopes);
    }
+ 
 }

@@ -44,19 +44,4 @@ public class EnvelopeTest {
       System.out.println(envelope);
    }
 
-   /*
-   public void testMarshallEnvelope() throws JAXBException {
-      Marshaller marshaller = jc.createMarshaller();
-      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-      EnvelopeType envelope = EnvelopeType.builder()
-              .references(new ReferencesType())
-              .virtualSystem(
-                      VirtualSystemType.builder()
-                              .operatingSystemSection(OperatingSystemSection.builder().osType("windows7Server64Guest").build())
-                              .build())
-              .build();
-      marshaller.marshal(envelope, System.out);
-   }
-   */
-
 }

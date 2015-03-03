@@ -30,7 +30,6 @@ import org.jclouds.vcloud.director.v1_5.domain.dmtf.cim.ResourceAllocationSettin
 import org.jclouds.vcloud.director.v1_5.domain.dmtf.cim.VirtualSystemSettingData;
 
 import com.google.common.base.Joiner;
-
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -132,7 +131,7 @@ public class VirtualHardwareSection extends SectionType {
    @XmlElement(name = "Item")
    protected Set<? extends ResourceAllocationSettingData> items = Sets.newLinkedHashSet();
 
-   @XmlAnyElement(lax=true)
+   @XmlAnyElement(lax = true)
    protected List<Object> any;
 
    protected VirtualHardwareSection(Builder<?> builder) {

@@ -25,10 +25,10 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name="ResourceType", propOrder={"link"})
+@XmlType(name = "ResourceType", propOrder = { "link" })
 public class ResourceType extends VCloudExtensibleType {
 
-  @XmlElement(name="Link")
+  @XmlElement(name = "Link")
   protected List<LinkType> link;
 
   @XmlAttribute
@@ -37,31 +37,27 @@ public class ResourceType extends VCloudExtensibleType {
   @XmlAttribute
   protected String type;
 
-  public List<LinkType> getLink()
-  {
+  public List<LinkType> getLink() {
     if (this.link == null) {
       this.link = new ArrayList();
     }
     return this.link;
   }
 
-  public String getHref()
-  {
+  public String getHref() {
     return this.href;
   }
 
-  public void setHref(String value)
-  {
+  public void setHref(String value) {
     this.href = value;
   }
 
-  public String getType()
-  {
+  public String getType() {
     return this.type;
   }
 
-  public void setType(String value)
-  {
+  public void setType(String value) {
     this.type = value;
   }
+
 }

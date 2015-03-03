@@ -16,8 +16,6 @@
  */
 package org.jclouds.vcloud.director.v1_5;
 
-import static org.testng.Assert.assertEquals;
-
 import org.jclouds.vcloud.director.v1_5.domain.Session;
 import org.jclouds.vcloud.director.v1_5.internal.BaseVCloudDirectorApiLiveTest;
 import org.testng.annotations.BeforeClass;

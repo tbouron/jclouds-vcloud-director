@@ -51,18 +51,13 @@ import java.util.Set;
 import javax.annotation.Resource;
 import javax.inject.Inject;
 
-import org.jclouds.ContextBuilder;
 import org.jclouds.apis.BaseApiLiveTest;
 import org.jclouds.date.DateService;
 import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.MsgType;
 import org.jclouds.io.Payloads;
 import org.jclouds.logging.Logger;
-import org.jclouds.providers.AnonymousProviderMetadata;
-import org.jclouds.providers.ProviderMetadata;
 import org.jclouds.vcloud.director.testng.FormatApiResultsListener;
-import org.jclouds.vcloud.director.v1_5.VCloudDirectorApiMetadata;
 import org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType;
-import org.jclouds.vcloud.director.v1_5.admin.VCloudDirectorAdminApi;
 import org.jclouds.vcloud.director.v1_5.domain.Catalog;
 import org.jclouds.vcloud.director.v1_5.domain.Checks;
 import org.jclouds.vcloud.director.v1_5.domain.Link;
