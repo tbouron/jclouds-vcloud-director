@@ -63,6 +63,25 @@
     </jclouds.osgi.import>
   </properties>
 
+  <!-- Cloudsoft repo, for early custom releases of jclouds-docker -->
+  <repositories>
+    <repository>
+      <id>cloudsoft-deploy-artifactory-release</id>
+      <url>http://ccweb.cloudsoftcorp.com/maven/libs-release-local/</url>
+      <releases> <enabled>true</enabled> </releases>
+      <snapshots> <enabled>false</enabled> </snapshots>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>cloudsoft-deploy-artifactory-release</id>
+      <url>http://ccweb.cloudsoftcorp.com/maven/libs-release-local/</url>
+      <releases> <enabled>true</enabled> </releases>
+      <snapshots> <enabled>false</enabled> </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+
+
   <dependencies>
     <dependency>
       <groupId>com.jamesmurty.utils</groupId>
