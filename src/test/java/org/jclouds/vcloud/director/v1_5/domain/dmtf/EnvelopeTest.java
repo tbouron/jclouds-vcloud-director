@@ -39,7 +39,7 @@ public class EnvelopeTest {
    public void testUnmarshallEnvelope() throws JAXBException {
       Unmarshaller unmarshaller = jc.createUnmarshaller();
       unmarshaller.setEventHandler(new javax.xml.bind.helpers.DefaultValidationEventHandler());
-      File xml = new File("vcloud-director/src/test/resources/dmtf/envelope.xml");
+      File xml = new File("src/test/resources/dmtf/envelope.xml");
       Envelope envelope = (Envelope) unmarshaller.unmarshal(xml);
       System.out.println(envelope);
    }
