@@ -25,7 +25,6 @@ import org.jclouds.domain.Credentials;
 import org.jclouds.vcloud.director.v1_5.VCloudDirectorApi;
 import org.jclouds.vcloud.director.v1_5.annotations.Login;
 import org.jclouds.vcloud.director.v1_5.domain.SessionWithToken;
-import org.jclouds.vcloud.director.v1_5.login.SessionApi;
 
 import com.google.common.base.Supplier;
 import com.google.common.cache.CacheLoader;

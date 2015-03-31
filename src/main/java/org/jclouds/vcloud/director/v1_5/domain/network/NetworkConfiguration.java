@@ -19,8 +19,6 @@ package org.jclouds.vcloud.director.v1_5.domain.network;
 import static com.google.common.base.Objects.equal;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Set;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
@@ -28,9 +26,7 @@ import javax.xml.bind.annotation.XmlType;
 import org.jclouds.vcloud.director.v1_5.domain.Reference;
 import org.jclouds.vcloud.director.v1_5.domain.network.Network.FenceMode;
 
-
 import com.google.common.base.Objects;
-import com.google.common.collect.Sets;
 
 /**
  * Returns a network configuration

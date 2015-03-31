@@ -626,7 +626,7 @@ public class VAppApiLiveTest extends AbstractVAppApiLiveTest {
       ProductSectionList newSections = oldSections
                .toBuilder()
                .productSection(
-                        ProductSection.builder().info((MsgType.builder().value("Information about the installed software").build()))
+                        ProductSection.builder().info(MsgType.builder().value("Information about the installed software").build())
                                  // Default ovf:Info text
                                  .required().product(MsgType.builder().value("jclouds").build())
                                  .vendor(MsgType.builder().value("jclouds Inc.").build())

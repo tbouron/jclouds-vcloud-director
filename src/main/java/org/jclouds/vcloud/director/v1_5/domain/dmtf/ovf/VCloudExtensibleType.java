@@ -28,11 +28,11 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name="VCloudExtensibleType", propOrder={"vCloudExtension"})
+@XmlType(name = "VCloudExtensibleType", propOrder = {"vCloudExtension"})
 public abstract class VCloudExtensibleType
 {
 
-  @XmlElement(name="VCloudExtension")
+  @XmlElement(name = "VCloudExtension")
   protected List<VCloudExtensionType> vCloudExtension;
 
   @XmlAnyAttribute

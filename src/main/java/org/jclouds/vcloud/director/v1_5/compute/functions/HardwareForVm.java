@@ -24,18 +24,12 @@ import javax.inject.Inject;
 import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.HardwareBuilder;
 import org.jclouds.compute.predicates.ImagePredicates;
-import org.jclouds.domain.Location;
 import org.jclouds.logging.Logger;
-import org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType;
-import org.jclouds.vcloud.director.v1_5.domain.Reference;
 import org.jclouds.vcloud.director.v1_5.domain.Vm;
 import org.jclouds.vcloud.director.v1_5.domain.section.VirtualHardwareSection;
-import org.jclouds.vcloud.director.v1_5.functions.SectionForVApp;
 import org.jclouds.vcloud.director.v1_5.functions.VirtualHardwareSectionForVApp;
-import org.jclouds.vcloud.director.v1_5.predicates.LinkPredicates;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 
 public class HardwareForVm implements Function<Vm, Hardware> {
 

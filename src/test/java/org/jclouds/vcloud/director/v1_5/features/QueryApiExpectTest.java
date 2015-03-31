@@ -16,8 +16,6 @@
  */
 package org.jclouds.vcloud.director.v1_5.features;
 
-import static org.testng.Assert.assertEquals;
-
 //import java.net.URI;
 //
 //import org.jclouds.http.HttpRequest;

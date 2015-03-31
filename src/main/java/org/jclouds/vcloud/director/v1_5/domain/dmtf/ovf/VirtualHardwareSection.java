@@ -132,7 +132,7 @@ public class VirtualHardwareSection extends SectionType {
    @XmlElement(name = "Item")
    protected Set<? extends ResourceAllocationSettingData> items = Sets.newLinkedHashSet();
 
-   @XmlAnyElement(lax=true)
+   @XmlAnyElement(lax = true)
    protected List<Object> any;
 
    protected VirtualHardwareSection(Builder<?> builder) {

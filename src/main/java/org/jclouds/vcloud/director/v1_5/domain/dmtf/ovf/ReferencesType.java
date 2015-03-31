@@ -20,7 +20,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "References")
-@XmlType(name="ReferencesType")//, propOrder={"reference"})
+@XmlType(name = "ReferencesType")//, propOrder={"reference"})
 public class ReferencesType extends ContainerType {
 
   /*

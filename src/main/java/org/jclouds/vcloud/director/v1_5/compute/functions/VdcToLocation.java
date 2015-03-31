@@ -17,7 +17,6 @@
 package org.jclouds.vcloud.director.v1_5.compute.functions;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Iterables.getOnlyElement;
 import static java.lang.String.format;
 
 import javax.inject.Inject;

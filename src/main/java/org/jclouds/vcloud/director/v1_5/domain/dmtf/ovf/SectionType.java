@@ -17,14 +17,11 @@
 package org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf;
 
 import static com.google.common.base.Objects.equal;
-import static org.jclouds.vcloud.director.v1_5.domain.dmtf.DMTFConstants.*;
+import static org.jclouds.vcloud.director.v1_5.domain.dmtf.DMTFConstants.OVF_NS;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
-
-
-import org.jclouds.vcloud.director.v1_5.domain.dmtf.DMTFConstants;
 
 import com.google.common.base.Objects;
 

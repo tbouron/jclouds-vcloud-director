@@ -16,11 +16,6 @@
  */
 package org.jclouds.vcloud.director.v1_5.features;
 
-import static org.jclouds.Fallbacks.NullOnNotFoundOr404;
-import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.CLONE_MEDIA_PARAMS;
-import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.MEDIA;
-import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.TASK;
-
 import java.net.URI;
 
 import javax.ws.rs.Consumes;

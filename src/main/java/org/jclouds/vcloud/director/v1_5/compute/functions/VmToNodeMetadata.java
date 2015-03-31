@@ -22,7 +22,6 @@ import static com.google.common.collect.Iterables.filter;
 import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.getCredentialsFrom;
 import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.getIpsFromVm;
 import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.toComputeOs;
-
 import java.util.Map;
 import java.util.Set;
 
@@ -37,13 +36,10 @@ import org.jclouds.compute.functions.GroupNamingConvention;
 import org.jclouds.domain.Credentials;
 import org.jclouds.logging.Logger;
 import org.jclouds.util.InetAddresses2.IsPrivateIPAddress;
-import org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType;
-import org.jclouds.vcloud.director.v1_5.domain.Vm;
 import org.jclouds.vcloud.director.v1_5.domain.ResourceEntity.Status;
-import org.jclouds.vcloud.director.v1_5.predicates.LinkPredicates;
+import org.jclouds.vcloud.director.v1_5.domain.Vm;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 
 @Singleton
 public class VmToNodeMetadata implements Function<Vm, NodeMetadata> {

@@ -22,11 +22,11 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name="LinkType")
+@XmlType(name = "LinkType")
 public class LinkType extends ReferenceType
 {
 
-  @XmlAttribute(required=true)
+  @XmlAttribute(required = true)
   protected String rel;
 
   public String getRel()

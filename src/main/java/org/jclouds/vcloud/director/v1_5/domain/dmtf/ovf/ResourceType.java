@@ -25,10 +25,10 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name="ResourceType", propOrder={"link"})
+@XmlType(name = "ResourceType", propOrder = {"link"})
 public class ResourceType extends VCloudExtensibleType {
 
-  @XmlElement(name="Link")
+  @XmlElement(name = "Link")
   protected List<LinkType> link;
 
   @XmlAttribute

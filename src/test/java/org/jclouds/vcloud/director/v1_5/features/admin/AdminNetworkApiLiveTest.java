@@ -24,12 +24,9 @@ import static org.jclouds.vcloud.director.v1_5.VCloudDirectorLiveTestConstants.U
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import com.google.common.collect.ImmutableSet;
-
 import org.jclouds.vcloud.director.v1_5.domain.Checks;
 import org.jclouds.vcloud.director.v1_5.domain.Task;
 import org.jclouds.vcloud.director.v1_5.domain.network.ExternalNetwork;
-import org.jclouds.vcloud.director.v1_5.domain.network.IpScope;
 import org.jclouds.vcloud.director.v1_5.domain.network.Network;
 import org.jclouds.vcloud.director.v1_5.domain.network.NetworkConfiguration;
 import org.jclouds.vcloud.director.v1_5.domain.network.NetworkFeatures;
@@ -39,6 +36,8 @@ import org.jclouds.vcloud.director.v1_5.domain.org.OrgNetwork;
 import org.jclouds.vcloud.director.v1_5.internal.BaseVCloudDirectorApiLiveTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Tests live behavior of {@link AdminNetworkApi}.

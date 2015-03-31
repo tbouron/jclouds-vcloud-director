@@ -22,7 +22,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name="ContainerType")
+@XmlType(name = "ContainerType")
 public class ContainerType extends ResourceType {
 
   @XmlAttribute

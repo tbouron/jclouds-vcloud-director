@@ -16,7 +16,6 @@
  */
 package org.jclouds.vcloud.director.v1_5.internal;
 
-import java.util.Properties;
 /*
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.HttpResponse;

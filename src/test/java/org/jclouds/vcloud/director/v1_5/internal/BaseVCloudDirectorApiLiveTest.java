@@ -51,18 +51,13 @@ import java.util.Set;
 import javax.annotation.Resource;
 import javax.inject.Inject;
 
-import org.jclouds.ContextBuilder;
 import org.jclouds.apis.BaseApiLiveTest;
 import org.jclouds.date.DateService;
 import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.MsgType;
 import org.jclouds.io.Payloads;
 import org.jclouds.logging.Logger;
-import org.jclouds.providers.AnonymousProviderMetadata;
-import org.jclouds.providers.ProviderMetadata;
 import org.jclouds.vcloud.director.testng.FormatApiResultsListener;
-import org.jclouds.vcloud.director.v1_5.VCloudDirectorApiMetadata;
 import org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType;
-import org.jclouds.vcloud.director.v1_5.admin.VCloudDirectorAdminApi;
 import org.jclouds.vcloud.director.v1_5.domain.Catalog;
 import org.jclouds.vcloud.director.v1_5.domain.Checks;
 import org.jclouds.vcloud.director.v1_5.domain.Link;
@@ -125,9 +120,6 @@ public abstract class BaseVCloudDirectorApiLiveTest extends BaseApiLiveTest<VClo
 
    protected static final long TASK_TIMEOUT_SECONDS = 100L;
    protected static final long LONG_TASK_TIMEOUT_SECONDS = 300L;
-
-   public static final int REQUIRED_ADMIN_VM_QUOTA = 0;
-   public static final int REQUIRED_USER_VM_QUOTA = 0;
 
    public Predicate<Task> retryTaskSuccess;
    public Predicate<Task> retryTaskSuccessLong;

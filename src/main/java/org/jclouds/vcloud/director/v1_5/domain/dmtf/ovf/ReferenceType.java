@@ -22,10 +22,10 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name="ReferenceType")
+@XmlType(name = "ReferenceType")
 public class ReferenceType extends VCloudExtensibleType {
 
-  @XmlAttribute(required=true)
+  @XmlAttribute(required = true)
   protected String href;
 
   @XmlAttribute
