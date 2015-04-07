@@ -58,14 +58,18 @@ public class VCloudDirectorComputeServiceAdapterLiveTest extends BaseVCloudDirec
       String name = "vm-" + new Random().nextInt();
 
       Template template = templateBuilder
-              //.imageNameMatches("centos6.4x64")
-              .imageNameMatches("cloudsoft-template")
+              //.imageNameMatches("centos6.4x64") // TAI
+              .imageNameMatches("W2K12_STD_ENG_X64") // TAI
+              //.imageNameMatches("cloudsoft-template")
               .build();
 
-      //template.getOptions().networks("Deployment_Network_01");
-
+      template.getOptions().networks("Deployment_Network_01"); // TAI
+      template.getOptions().runScript("winrm quickconfig -q & " +
+              "winrm set winrm/config/service/auth @{Basic=\"true\"} & " +
+              "winrm set winrm/config/client @{AllowUnencrypted=\"true\"} & " +
+              "winrm set winrm/config/service @{AllowUnencrypted=\"true\"}");
       guest = adapter.createNodeWithGroupEncodedIntoName(group, name, template);
-      assertEquals(guest.getNodeId(), guest.getNode().getId() + "");
+      assertEquals(guest.getNodeId(), guest.getNode().getId());
    }
 
    public void testListHardwareProfiles() {
