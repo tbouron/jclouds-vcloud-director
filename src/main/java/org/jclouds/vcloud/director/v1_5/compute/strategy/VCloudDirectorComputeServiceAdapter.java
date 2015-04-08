@@ -41,6 +41,7 @@ import org.jclouds.compute.reference.ComputeServiceConstants;
 import org.jclouds.domain.Location;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.logging.Logger;
+import org.jclouds.scriptbuilder.domain.OsFamily;
 import org.jclouds.vcloud.director.v1_5.VCloudDirectorApi;
 import org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils;
 import org.jclouds.vcloud.director.v1_5.domain.Link;
@@ -137,8 +138,21 @@ public class VCloudDirectorComputeServiceAdapter implements
       // get the first vm to be added to vApp
       Vm toAddVm = Iterables.get(vms, 0);
 
+      // customize toAddVm
+      GuestCustomizationSection guestCustomizationSection = api.getVmApi().getGuestCustomizationSection(toAddVm.getHref());
+      guestCustomizationSection = guestCustomizationSection.toBuilder()
+              .adminPasswordAuto(true)
+              .resetPasswordRequired(false)
+              .build();
+
+      if (template.getOptions().getRunScript() != null) {
+         guestCustomizationSection = guestCustomizationSection.toBuilder()
+                 // TODO differentiate on guestOS
+                 .customizationScript(template.getOptions().getRunScript().render(OsFamily.WINDOWS)).build();
+      }
+
       String networkName = network.getName();
-      SourcedCompositionItemParam vmItem = createVmItem(toAddVm, networkName);
+      SourcedCompositionItemParam vmItem = createVmItem(toAddVm, networkName, guestCustomizationSection);
       ComposeVAppParams compositionParams = ComposeVAppParams.builder()
               .name(name)
               .instantiationParams(instantiationParams(vdc, networkName, network))
@@ -190,7 +204,8 @@ public class VCloudDirectorComputeServiceAdapter implements
       return new NodeAndInitialCredentials<Vm>(vm, vm.getId(), credsBuilder.build());
    }
 
-   private SourcedCompositionItemParam createVmItem(Vm vm, String networkName) {
+   private SourcedCompositionItemParam createVmItem(Vm vm, String networkName, GuestCustomizationSection
+           guestCustomizationSection) {
       // creating an item element. this item will contain the vm which should be added to the vapp.
       Reference reference = Reference.builder().name(name("vm-")).href(vm.getHref()).type(vm.getType()).build();
       SourcedCompositionItemParam vmItem = SourcedCompositionItemParam.builder().source(reference).build();
@@ -209,12 +224,6 @@ public class VCloudDirectorComputeServiceAdapter implements
               .primaryNetworkConnectionIndex(0).networkConnection(networkConnection).build();
 
       // adding the network connection section to the instantiation params of the vapp.
-      GuestCustomizationSection customizationSection = api.getVmApi().getGuestCustomizationSection(vm.getHref());
-      GuestCustomizationSection guestCustomizationSection = customizationSection.toBuilder()
-              .adminPasswordAuto(true)
-              .resetPasswordRequired(false)
-              .build();
-
       vmInstantiationParams = InstantiationParams.builder()
               .sections(ImmutableSet.of(networkConnectionSection, guestCustomizationSection))
               .build();
