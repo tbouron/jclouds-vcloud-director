@@ -42,7 +42,9 @@ import org.jclouds.domain.Location;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.logging.Logger;
 import org.jclouds.scriptbuilder.domain.OsFamily;
+import org.jclouds.scriptbuilder.domain.Statement;
 import org.jclouds.vcloud.director.v1_5.VCloudDirectorApi;
+import org.jclouds.vcloud.director.v1_5.compute.options.VCloudDirectorTemplateOptions;
 import org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils;
 import org.jclouds.vcloud.director.v1_5.domain.Link;
 import org.jclouds.vcloud.director.v1_5.domain.Reference;
@@ -145,10 +147,12 @@ public class VCloudDirectorComputeServiceAdapter implements
               .resetPasswordRequired(false)
               .build();
 
-      if (template.getOptions().getRunScript() != null) {
+      Statement guestCustomizationScript = ((VCloudDirectorTemplateOptions)(template.getOptions())).getGuestCustomizationScript();
+
+      if (guestCustomizationScript != null) {
          guestCustomizationSection = guestCustomizationSection.toBuilder()
                  // TODO differentiate on guestOS
-                 .customizationScript(template.getOptions().getRunScript().render(OsFamily.WINDOWS)).build();
+                 .customizationScript(guestCustomizationScript.render(OsFamily.WINDOWS)).build();
       }
 
       String networkName = network.getName();
