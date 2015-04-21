@@ -23,13 +23,19 @@ import javax.inject.Inject;
 
 import org.jclouds.compute.domain.Hardware;
 import org.jclouds.compute.domain.HardwareBuilder;
+import org.jclouds.compute.domain.Processor;
 import org.jclouds.compute.predicates.ImagePredicates;
 import org.jclouds.logging.Logger;
 import org.jclouds.vcloud.director.v1_5.domain.Vm;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.cim.ResourceAllocationSettingData;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.SectionType;
 import org.jclouds.vcloud.director.v1_5.domain.section.VirtualHardwareSection;
 import org.jclouds.vcloud.director.v1_5.functions.VirtualHardwareSectionForVApp;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 
 public class HardwareForVm implements Function<Vm, Hardware> {
 
@@ -56,7 +62,7 @@ public class HardwareForVm implements Function<Vm, Hardware> {
       // TODO make this work with composite vApps
       if (from == null)
          return null;
-      
+
       VirtualHardwareSection hardware = findVirtualHardwareSectionForVm.apply(from);
       HardwareBuilder builder = rasdToHardwareBuilder.apply(hardware.getItems());
       /*
@@ -64,8 +70,47 @@ public class HardwareForVm implements Function<Vm, Hardware> {
             LinkPredicates.typeEquals(VCloudDirectorMediaType.VDC))));
             */
       builder.ids(from.getHref().toASCIIString()).name(from.getName()).supportsImage(
-               ImagePredicates.idEquals(from.getHref().toASCIIString()));
-      builder.hypervisor("VMware");
+              ImagePredicates.idEquals(from.getHref().toASCIIString()));
+      VirtualHardwareSection virtualHardwareSection = findVirtualHardwareSection(from);
+      int ram = extractRamFrom(virtualHardwareSection);
+      double cores = extractCoresFrom(virtualHardwareSection);
+      builder.id(from.getId())
+             .name(from.getName())
+             .hypervisor("VMware")
+             .providerId(from.getHref().toString())
+             .ram(ram)
+             .processors(ImmutableList.of(new Processor(cores, 1)));
       return builder.build();
+   }
+
+   private double extractCoresFrom(VirtualHardwareSection virtualHardwareSection) {
+      ResourceAllocationSettingData resourceAllocationSettingData = Iterables.find(virtualHardwareSection.getItems(), new
+              Predicate<ResourceAllocationSettingData>() {
+                 @Override
+                 public boolean apply(ResourceAllocationSettingData input) {
+                    return input.getResourceType() == ResourceAllocationSettingData.ResourceType.PROCESSOR;
+                 }
+              });
+      return resourceAllocationSettingData.getVirtualQuantity().doubleValue();   }
+
+   private VirtualHardwareSection findVirtualHardwareSection(Vm from) {
+      return (VirtualHardwareSection) Iterables.find(from.getSections(), new
+              Predicate<SectionType>() {
+                 @Override
+                 public boolean apply(SectionType input) {
+                    return input.getInfo().getValue().equals("Virtual hardware requirements");
+                 }
+              });
+   }
+
+   private int extractRamFrom(VirtualHardwareSection virtualHardwareSection) {
+      ResourceAllocationSettingData resourceAllocationSettingData = Iterables.find(virtualHardwareSection.getItems(), new
+              Predicate<ResourceAllocationSettingData>() {
+                 @Override
+                 public boolean apply(ResourceAllocationSettingData input) {
+                    return input.getResourceType() == ResourceAllocationSettingData.ResourceType.MEMORY;
+                 }
+              });
+      return resourceAllocationSettingData.getVirtualQuantity().intValue();
    }
 }

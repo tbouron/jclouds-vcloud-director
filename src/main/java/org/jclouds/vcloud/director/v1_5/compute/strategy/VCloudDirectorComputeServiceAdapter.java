@@ -19,6 +19,7 @@ package org.jclouds.vcloud.director.v1_5.compute.strategy;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.find;
 import static org.jclouds.util.Predicates2.retry;
+import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.VAPP;
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.VAPP_TEMPLATE;
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.VDC;
 import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.name;
@@ -48,6 +49,7 @@ import org.jclouds.vcloud.director.v1_5.compute.options.VCloudDirectorTemplateOp
 import org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils;
 import org.jclouds.vcloud.director.v1_5.domain.Link;
 import org.jclouds.vcloud.director.v1_5.domain.Reference;
+import org.jclouds.vcloud.director.v1_5.domain.ResourceEntity;
 import org.jclouds.vcloud.director.v1_5.domain.Session;
 import org.jclouds.vcloud.director.v1_5.domain.Task;
 import org.jclouds.vcloud.director.v1_5.domain.VApp;
@@ -343,7 +345,38 @@ public class VCloudDirectorComputeServiceAdapter implements
 
    @Override
    public Iterable<Vm> listNodes() {
-      return Sets.newHashSet();
+      Org org = getOrgForSession();
+      Vdc vdc = api.getVdcApi().get(find(org.getLinks(), ReferencePredicates.<Link>typeEquals(VDC)).getHref());
+      return FluentIterable.from(vdc.getResourceEntities())
+              .filter(ReferencePredicates.typeEquals(VAPP))
+              .transform(new Function<Reference, VApp>() {
+
+                 @Override
+                 public VApp apply(Reference in) {
+                    return api.getVAppApi().get(in.getHref());
+                 }
+              })
+              .filter(Predicates.notNull())
+              .filter(new Predicate<VApp>() {
+                 @Override
+                 public boolean apply(VApp input) {
+                    return input.getTasks().isEmpty();
+                 }
+              })
+              .transformAndConcat(new Function<VApp, Iterable<Vm>>() {
+                 @Override
+                 public Iterable<Vm> apply(VApp input) {
+                    return input.getChildren() != null ? input.getChildren().getVms() : ImmutableList.<Vm>of();
+                 }
+              })
+              // TODO we want also POWERED_OFF?
+              .filter(new Predicate<Vm>() {
+                 @Override
+                 public boolean apply(Vm input) {
+                    return input.getStatus() == ResourceEntity.Status.POWERED_ON;
+                 }
+              })
+              .toSet();
    }
 
    @Override
@@ -364,19 +397,7 @@ public class VCloudDirectorComputeServiceAdapter implements
    @Override
    public void destroyNode(String id) {
       Vm vm = api.getVmApi().get(id);
-      URI vAppRef;
-
-      Optional<Link> optionalLink = Iterables.tryFind(vm.getLinks(), new Predicate<Link>() {
-         @Override
-         public boolean apply(Link link) {
-            return link.getRel() != null && link.getRel() == Link.Rel.UP;
-         }
-      });
-      if (!optionalLink.isPresent()) {
-         logger.error("Cannot find the vAppRef that contains the vm with id(%s).", id);
-         throw new IllegalStateException("Cannot find the vAppRef that contains the vm with id(" + id + ")");
-      }
-      vAppRef = optionalLink.get().getHref();
+      URI vAppRef = VCloudDirectorComputeUtils.getVAppParent(vm);
       VApp vApp = api.getVAppApi().get(vAppRef);
 
       logger.debug("Deleting vApp(%s) that contains VM(%s) ...", vApp.getName(), vm.getName());
