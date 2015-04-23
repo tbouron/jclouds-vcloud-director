@@ -16,7 +16,6 @@
  */
 package org.jclouds.vcloud.director.v1_5.compute.strategy;
 
-import static org.testng.Assert.assertEquals;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -39,6 +38,7 @@ import org.jclouds.vcloud.director.v1_5.compute.options.VCloudDirectorTemplateOp
 import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 
 @Test(groups = "live", testName = "VCloudDirectorComputeServiceContextLiveTest")
 public class VCloudDirectorComputeServiceContextLiveTest extends BaseComputeServiceContextLiveTest {
@@ -52,8 +52,7 @@ public class VCloudDirectorComputeServiceContextLiveTest extends BaseComputeServ
    }
 
    @Test
-   public void testLaunchClusterWithMinDisk() throws RunNodesException {
-      int numNodes = 1;
+   public void testLaunchNode() throws RunNodesException {
       final String name = "node";
       ComputeServiceContext context = ContextBuilder.newBuilder(provider)
               .credentials(identity, credential)
@@ -64,20 +63,31 @@ public class VCloudDirectorComputeServiceContextLiveTest extends BaseComputeServ
 
       TemplateBuilder templateBuilder = context.getComputeService().templateBuilder();
 
-      Template template = templateBuilder.imageNameMatches("centos6.4x64") // TAI
-                                         .build();
+      Template template = templateBuilder
+              //.locationId("https://emea01.canopy-cloud.com/api/vdc/e931a09d-131f-4aaa-a667-efbe02eba428") // TAI2.0
+              .imageNameMatches("centos6.4x64") // TAI
+              //.imageNameMatches("CentOS_66_x64_platform") // TAI2.0
+              .build();
       // test passing custom options
       VCloudDirectorTemplateOptions options = template.getOptions().as(VCloudDirectorTemplateOptions.class);
 
-      Set<? extends NodeMetadata> nodes = context.getComputeService().createNodesInGroup(name, numNodes, template);
-      assertEquals(numNodes, nodes.size(), "wrong number of nodes");
-      for (NodeMetadata node : nodes) {
+      options
+      .networks("Deployment_Network_01"); // TAI
+      //.networks("Operational_Network_01"); // TAI2.0
+
+      NodeMetadata node = null;
+      try {
+         Set<? extends NodeMetadata> nodes = context.getComputeService().createNodesInGroup(name, 1, template);
+         node = Iterables.getOnlyElement(nodes);
          logger.debug("Created Node: %s", node);
          SshClient client = context.utils().sshForNode().apply(node);
          client.connect();
          ExecResponse hello = client.exec("mount");
          logger.debug(hello.getOutput().trim());
-         context.getComputeService().destroyNode(node.getId());
+      } finally {
+         if (node != null) {
+            context.getComputeService().destroyNode(node.getId());
+         }
       }
    }
 

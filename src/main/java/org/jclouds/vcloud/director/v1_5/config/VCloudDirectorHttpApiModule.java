@@ -22,10 +22,15 @@ import org.jclouds.http.annotation.Redirection;
 import org.jclouds.http.annotation.ServerError;
 import org.jclouds.json.config.GsonModule.DateAdapter;
 import org.jclouds.json.config.GsonModule.Iso8601DateAdapter;
+import org.jclouds.location.config.LocationModule;
+import org.jclouds.location.suppliers.ImplicitLocationSupplier;
+import org.jclouds.location.suppliers.implicit.OnlyLocationOrFirstZone;
 import org.jclouds.rest.ConfiguresHttpApi;
 import org.jclouds.rest.config.HttpApiModule;
 import org.jclouds.vcloud.director.v1_5.VCloudDirectorApi;
 import org.jclouds.vcloud.director.v1_5.handlers.VCloudDirectorErrorHandler;
+
+import com.google.inject.Scopes;
 
 /**
  * Configures the vCloud Director connection.
@@ -44,6 +49,12 @@ public class VCloudDirectorHttpApiModule extends HttpApiModule<VCloudDirectorApi
       bind(HttpErrorHandler.class).annotatedWith(Redirection.class).to(VCloudDirectorErrorHandler.class);
       bind(HttpErrorHandler.class).annotatedWith(ClientError.class).to(VCloudDirectorErrorHandler.class);
       bind(HttpErrorHandler.class).annotatedWith(ServerError.class).to(VCloudDirectorErrorHandler.class);
+   }
+
+   @Override
+   protected void installLocations() {
+      install(new LocationModule());
+      bind(ImplicitLocationSupplier.class).to(OnlyLocationOrFirstZone.class).in(Scopes.SINGLETON);
    }
 
 }
