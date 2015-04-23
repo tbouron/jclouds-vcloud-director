@@ -65,6 +65,7 @@ public class VCloudDirectorComputeUtils {
 
    public static CIMOperatingSystem toComputeOs(VApp vApp) {
       // TODO we need to change the design so that it doesn't assume single-vms
+      if (vApp == null || vApp.getChildren() == null) return null;
       return vApp.getChildren().getVms().size() > 0 ? toComputeOs(Iterables.get(vApp.getChildren().getVms(), 0)) : null;
    }
    

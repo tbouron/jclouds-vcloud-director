@@ -25,7 +25,6 @@ import javax.inject.Named;
 import org.jclouds.ContextBuilder;
 import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.RunNodesException;
-import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.ExecResponse;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.Template;
@@ -65,11 +64,8 @@ public class VCloudDirectorComputeServiceContextLiveTest extends BaseComputeServ
 
       TemplateBuilder templateBuilder = context.getComputeService().templateBuilder();
 
-      for (ComputeMetadata computeMetadata : context.getComputeService().listNodes()) {
-         System.out.println(computeMetadata);
-      }
-
-      Template template = templateBuilder.build();
+      Template template = templateBuilder.imageNameMatches("centos6.4x64") // TAI
+                                         .build();
       // test passing custom options
       VCloudDirectorTemplateOptions options = template.getOptions().as(VCloudDirectorTemplateOptions.class);
 
