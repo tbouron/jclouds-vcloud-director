@@ -20,6 +20,7 @@ import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.find;
 import static com.google.common.collect.Iterables.tryFind;
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.ORG_NETWORK;
+import java.net.URI;
 import java.util.Random;
 import java.util.Set;
 
@@ -64,6 +65,7 @@ public class VCloudDirectorComputeUtils {
 
    public static CIMOperatingSystem toComputeOs(VApp vApp) {
       // TODO we need to change the design so that it doesn't assume single-vms
+      if (vApp == null || vApp.getChildren() == null) return null;
       return vApp.getChildren().getVms().size() > 0 ? toComputeOs(Iterables.get(vApp.getChildren().getVms(), 0)) : null;
    }
    
@@ -204,5 +206,18 @@ public class VCloudDirectorComputeUtils {
       Session session = api.getCurrentSession();
       final Org org = api.getOrgApi().get(find(api.getOrgApi().list(), ReferencePredicates.nameEquals(session.get())).getHref());
       return tryFindNetworkNamed(api, org, networkName);
+   }
+
+   public static URI getVAppParent(Vm vm) {
+      Optional<Link> optionalLink = Iterables.tryFind(vm.getLinks(), new Predicate<Link>() {
+         @Override
+         public boolean apply(Link link) {
+            return link.getRel() != null && link.getRel() == Link.Rel.UP;
+         }
+      });
+      if (!optionalLink.isPresent()) {
+         throw new IllegalStateException("Cannot find the vAppRef that contains the vm with id(" + vm.getId() + ")");
+      }
+      return optionalLink.get().getHref();
    }
 }

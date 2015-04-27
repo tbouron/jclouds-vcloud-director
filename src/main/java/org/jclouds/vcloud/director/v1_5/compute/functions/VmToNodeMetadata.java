@@ -22,6 +22,7 @@ import static com.google.common.collect.Iterables.filter;
 import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.getCredentialsFrom;
 import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.getIpsFromVm;
 import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.toComputeOs;
+import java.net.URI;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,7 +37,10 @@ import org.jclouds.compute.functions.GroupNamingConvention;
 import org.jclouds.domain.Credentials;
 import org.jclouds.logging.Logger;
 import org.jclouds.util.InetAddresses2.IsPrivateIPAddress;
+import org.jclouds.vcloud.director.v1_5.VCloudDirectorApi;
+import org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils;
 import org.jclouds.vcloud.director.v1_5.domain.ResourceEntity.Status;
+import org.jclouds.vcloud.director.v1_5.domain.VApp;
 import org.jclouds.vcloud.director.v1_5.domain.Vm;
 
 import com.google.common.base.Function;
@@ -51,16 +55,18 @@ public class VmToNodeMetadata implements Function<Vm, NodeMetadata> {
    protected final Function<Status, NodeMetadata.Status> vAppStatusToNodeStatus;
    protected final Map<String, Credentials> credentialStore;
    protected final GroupNamingConvention nodeNamingConvention;
+   protected final VCloudDirectorApi api;
 
    @Inject
    protected VmToNodeMetadata(Function<Status, NodeMetadata.Status> vAppStatusToNodeStatus, Map<String, Credentials> credentialStore,
          FindLocationForResource findLocationForResourceInVDC, Function<Vm, Hardware> hardwareForVm,
-         GroupNamingConvention.Factory namingConvention) {
+         GroupNamingConvention.Factory namingConvention, VCloudDirectorApi api) {
       this.nodeNamingConvention = checkNotNull(namingConvention, "namingConvention").createWithoutPrefix();
       this.hardwareForVm = checkNotNull(hardwareForVm, "hardwareForVm");
       this.findLocationForResourceInVDC = checkNotNull(findLocationForResourceInVDC, "findLocationForResourceInVDC");
       this.credentialStore = checkNotNull(credentialStore, "credentialStore");
       this.vAppStatusToNodeStatus = checkNotNull(vAppStatusToNodeStatus, "vAppStatusToNodeStatus");
+      this.api = api;
    }
 
    public NodeMetadata apply(Vm from) {
@@ -71,7 +77,9 @@ public class VmToNodeMetadata implements Function<Vm, NodeMetadata> {
       builder.hostname(from.getName());
       //builder.location(findLocationForResourceInVDC.apply(Iterables.find(from.getLinks(),LinkPredicates.typeEquals(VCloudDirectorMediaType.VDC))));
       builder.group(nodeNamingConvention.groupInUniqueNameOrNull(from.getName()));
-      builder.operatingSystem(toComputeOs(from));
+      URI vAppRef = VCloudDirectorComputeUtils.getVAppParent(from);
+      VApp vAppParent = api.getVAppApi().get(vAppRef);
+      builder.operatingSystem(toComputeOs(vAppParent));
       builder.hardware(hardwareForVm.apply(from));
       builder.status(vAppStatusToNodeStatus.apply(from.getStatus()));
       Set<String> addresses = getIpsFromVm(from);
@@ -85,4 +93,5 @@ public class VmToNodeMetadata implements Function<Vm, NodeMetadata> {
          credentialStore.put("node#" + from.getHref().toASCIIString(), fromApi);
       return builder.build();
    }
+
 }
