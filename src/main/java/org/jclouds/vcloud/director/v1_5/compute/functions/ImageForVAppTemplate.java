@@ -60,7 +60,7 @@ public class ImageForVAppTemplate implements Function<VAppTemplate, Image> {
 
    private final Function<Status, Image.Status> toPortableImageStatus;
    private final Function<VAppTemplate, Envelope> templateToEnvelope;
-   private final FindLocationForResource findLocationForResource;
+   private final FindLocationForResource findLocationForResourceInVDC;
    private final Supplier<Set<? extends Location>> locations;
 
    @Inject
@@ -68,7 +68,7 @@ public class ImageForVAppTemplate implements Function<VAppTemplate, Image> {
             FindLocationForResource findLocationForResource, @Memoized Supplier<Set<? extends Location>> locations) {
       this.toPortableImageStatus = checkNotNull(toPortableImageStatus, "toPortableImageStatus");
       this.templateToEnvelope = checkNotNull(templateToEnvelope, "templateToEnvelope");
-      this.findLocationForResource = checkNotNull(findLocationForResource, "findLocationForResource");
+      this.findLocationForResourceInVDC = checkNotNull(findLocationForResource, "findLocationForResourceInVDC");
       this.locations = checkNotNull(locations, "locations");
    }
 
@@ -83,11 +83,11 @@ public class ImageForVAppTemplate implements Function<VAppTemplate, Image> {
       builder.name(from.getName());
       Link vdc = Iterables.find(checkNotNull(from, "from").getLinks(), LinkPredicates.typeEquals(VCloudDirectorMediaType.VDC));
       if (vdc != null) {
-         builder.location(Iterables.getOnlyElement(locations.get()));
-         //builder.location(vdcToLocation.apply(api.getVdcApi().get(vdc.getHref())));
+         builder.location(findLocationForResourceInVDC.apply(Iterables.find(from.getLinks(), LinkPredicates.typeEquals(VCloudDirectorMediaType.VDC))));
       } else {
          // otherwise, it could be in a public catalog, which is not assigned to a VDC
       }
+
       builder.description(from.getDescription() != null ? from.getDescription() : from.getName());
       //builder.operatingSystem(CIMOperatingSystem.toComputeOs(ovf));
       OperatingSystem os;

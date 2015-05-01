@@ -38,12 +38,17 @@ import org.jclouds.domain.Credentials;
 import org.jclouds.logging.Logger;
 import org.jclouds.util.InetAddresses2.IsPrivateIPAddress;
 import org.jclouds.vcloud.director.v1_5.VCloudDirectorApi;
+import org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType;
 import org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils;
+import org.jclouds.vcloud.director.v1_5.domain.Link;
 import org.jclouds.vcloud.director.v1_5.domain.ResourceEntity.Status;
 import org.jclouds.vcloud.director.v1_5.domain.VApp;
 import org.jclouds.vcloud.director.v1_5.domain.Vm;
+import org.jclouds.vcloud.director.v1_5.predicates.LinkPredicates;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.collect.Iterables;
 
 @Singleton
 public class VmToNodeMetadata implements Function<Vm, NodeMetadata> {
@@ -75,10 +80,13 @@ public class VmToNodeMetadata implements Function<Vm, NodeMetadata> {
       builder.uri(from.getHref());
       builder.name(from.getName());
       builder.hostname(from.getName());
-      //builder.location(findLocationForResourceInVDC.apply(Iterables.find(from.getLinks(),LinkPredicates.typeEquals(VCloudDirectorMediaType.VDC))));
       builder.group(nodeNamingConvention.groupInUniqueNameOrNull(from.getName()));
       URI vAppRef = VCloudDirectorComputeUtils.getVAppParent(from);
       VApp vAppParent = api.getVAppApi().get(vAppRef);
+      Optional<Link> linkOptional = Iterables.tryFind(vAppParent.getLinks(), LinkPredicates.typeEquals(VCloudDirectorMediaType.VDC));
+      if (linkOptional.isPresent()) {
+         builder.location(findLocationForResourceInVDC.apply(linkOptional.get()));
+      }
       builder.operatingSystem(toComputeOs(vAppParent));
       builder.hardware(hardwareForVm.apply(from));
       builder.status(vAppStatusToNodeStatus.apply(from.getStatus()));

@@ -36,6 +36,7 @@ import org.jclouds.vcloud.director.v1_5.compute.functions.ImageForVAppTemplate;
 import org.jclouds.vcloud.director.v1_5.compute.functions.ImageStateForStatus;
 import org.jclouds.vcloud.director.v1_5.compute.functions.NodemetadataStatusForStatus;
 import org.jclouds.vcloud.director.v1_5.compute.functions.ValidateVAppTemplateAndReturnEnvelopeOrThrowIllegalArgumentException;
+import org.jclouds.vcloud.director.v1_5.compute.functions.VdcToLocation;
 import org.jclouds.vcloud.director.v1_5.compute.functions.VmToNodeMetadata;
 import org.jclouds.vcloud.director.v1_5.compute.options.VCloudDirectorTemplateOptions;
 import org.jclouds.vcloud.director.v1_5.compute.strategy.VCloudDirectorComputeServiceAdapter;
@@ -44,6 +45,7 @@ import org.jclouds.vcloud.director.v1_5.domain.ResourceEntity;
 import org.jclouds.vcloud.director.v1_5.domain.Session;
 import org.jclouds.vcloud.director.v1_5.domain.SessionWithToken;
 import org.jclouds.vcloud.director.v1_5.domain.VAppTemplate;
+import org.jclouds.vcloud.director.v1_5.domain.Vdc;
 import org.jclouds.vcloud.director.v1_5.domain.Vm;
 import org.jclouds.vcloud.director.v1_5.domain.dmtf.Envelope;
 import org.jclouds.vcloud.director.v1_5.loaders.LoginUserInOrgWithPassword;
@@ -61,13 +63,13 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.name.Named;
 
 public class VCloudDirectorComputeServiceContextModule extends
-        ComputeServiceAdapterContextModule<Vm, Hardware, VAppTemplate, Location> {
+        ComputeServiceAdapterContextModule<Vm, Hardware, VAppTemplate, Vdc> {
 
    @SuppressWarnings("unchecked")
    @Override
    protected void configure() {
       super.configure();
-      bind(new TypeLiteral<ComputeServiceAdapter<Vm, Hardware, VAppTemplate, Location>>() {
+      bind(new TypeLiteral<ComputeServiceAdapter<Vm, Hardware, VAppTemplate, Vdc>>() {
       }).to(VCloudDirectorComputeServiceAdapter.class);
       bind(new TypeLiteral<Function<ResourceEntity.Status, NodeMetadata.Status>>() {
       }).to(NodemetadataStatusForStatus.class);
@@ -83,7 +85,11 @@ public class VCloudDirectorComputeServiceContextModule extends
       }).to(Class.class.cast(IdentityFunction.class));
       bind(new TypeLiteral<Function<Vm, Hardware>>() {
       }).to(Class.class.cast(HardwareForVm.class));
+      bind(new TypeLiteral<Function<Vdc, Location>>() {
+      }).to(VdcToLocation.class);
       bind(TemplateOptions.class).to(VCloudDirectorTemplateOptions.class);
+      install(new LocationsFromComputeServiceAdapterModule<Vm, Hardware, VAppTemplate, Vdc>() {
+      });
 
       /*
       bind(new TypeLiteral<Function<Reference, Location>>() {

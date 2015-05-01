@@ -17,6 +17,7 @@
 package org.jclouds.vcloud.director.v1_5.compute.strategy;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.find;
 import static org.jclouds.util.Predicates2.retry;
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.VAPP;
@@ -39,7 +40,6 @@ import org.jclouds.compute.domain.HardwareBuilder;
 import org.jclouds.compute.domain.Processor;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.reference.ComputeServiceConstants;
-import org.jclouds.domain.Location;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.logging.Logger;
 import org.jclouds.scriptbuilder.domain.OsFamily;
@@ -89,7 +89,7 @@ import com.google.common.collect.Sets;
  */
 @Singleton
 public class VCloudDirectorComputeServiceAdapter implements
-        ComputeServiceAdapter<Vm, Hardware, VAppTemplate, Location> {
+        ComputeServiceAdapter<Vm, Hardware, VAppTemplate, Vdc> {
 
    protected static final long TASK_TIMEOUT_SECONDS = 300L;
 
@@ -113,9 +113,9 @@ public class VCloudDirectorComputeServiceAdapter implements
       checkNotNull(template.getOptions(), "template options was null");
 
       String imageId = checkNotNull(template.getImage().getId(), "template image id must not be null");
+      String locationId = checkNotNull(template.getLocation().getId(), "template location id must not be null");
 
-      Session session = api.getCurrentSession();
-      final Org org = api.getOrgApi().get(find(api.getOrgApi().list(), ReferencePredicates.nameEquals(session.get())).getHref());
+      Org org = getOrgForSession();
       final Network network;
 
       if (template.getOptions().getNetworks().isEmpty()) {
@@ -134,12 +134,10 @@ public class VCloudDirectorComputeServiceAdapter implements
          network = optionalNetwork.get();
       }
 
-      Vdc vdc = api.getVdcApi().get(find(org.getLinks(), ReferencePredicates.<Link> typeEquals(VDC)).getHref());
-      String vdcUrn = vdc.getId();
-
+      Vdc vdc = getVdc(locationId);
       VAppTemplate vAppTemplate = api.getVAppTemplateApi().get(imageId);
       Set<Vm> vms = getAvailableVMsFromVAppTemplate(vAppTemplate);
-      // get the first vm to be added to vApp
+      // TODO now get the first vm to be added to vApp, what if more?
       Vm toAddVm = Iterables.get(vms, 0);
 
       // customize toAddVm
@@ -166,7 +164,7 @@ public class VCloudDirectorComputeServiceAdapter implements
               .deploy()
               .powerOn()
               .build();
-      VApp vApp = api.getVdcApi().composeVApp(vdcUrn, compositionParams);
+      VApp vApp = api.getVdcApi().composeVApp(vdc.getId(), compositionParams);
       Task compositionTask = Iterables.getFirst(vApp.getTasks(), null);
 
       logger.debug(">> awaiting vApp(%s) deployment", vApp.getId());
@@ -298,44 +296,26 @@ public class VCloudDirectorComputeServiceAdapter implements
 
    @Override
    public Set<VAppTemplate> listImages() {
-      Org org = getOrgForSession();
-      Vdc vdc = api.getVdcApi().get(find(org.getLinks(), ReferencePredicates.<Link>typeEquals(VDC)).getHref());
-      return FluentIterable.from(vdc.getResourceEntities())
-              .filter(ReferencePredicates.typeEquals(VAPP_TEMPLATE))
-              .transform(new Function<Reference, VAppTemplate>() {
+      Set<VAppTemplate> vAppTemplates = Sets.newHashSet();
+      for (Vdc vdc : listLocations()) {
+         vAppTemplates.addAll(FluentIterable.from(vdc.getResourceEntities())
+                 .filter(ReferencePredicates.typeEquals(VAPP_TEMPLATE))
+                 .transform(new Function<Reference, VAppTemplate>() {
 
-                 @Override
-                 public VAppTemplate apply(Reference in) {
-                    return api.getVAppTemplateApi().get(in.getHref());
-                 }
-              })
-              .filter(Predicates.notNull())
-              .filter(new Predicate<VAppTemplate>() {
-                 @Override
-                 public boolean apply(VAppTemplate input) {
-                    return input.getTasks().isEmpty();
-                 }
-              })
-              .toSet();
-   }
-
-   private Set<Vm> getAvailableVMsFromVAppTemplate(VAppTemplate vAppTemplate) {
-      return ImmutableSet.copyOf(Iterables.filter(vAppTemplate.getChildren(), new Predicate<Vm>() {
-         // filter out vms in the vApp template with computer name that contains underscores, dots,
-         // or both.
-         @Override
-         public boolean apply(Vm input) {
-            GuestCustomizationSection guestCustomizationSection = api.getVmApi().getGuestCustomizationSection(input.getId());
-            String computerName = guestCustomizationSection.getComputerName();
-            return computerName.equals(computerName);
-         }
-      }));
-   }
-
-   private Org getOrgForSession() {
-      Session session = api.getCurrentSession();
-      return api.getOrgApi().get(find(api.getOrgApi().list(), ReferencePredicates.nameEquals(session.get())).getHref());
-
+                    @Override
+                    public VAppTemplate apply(Reference in) {
+                       return api.getVAppTemplateApi().get(in.getHref());
+                    }
+                 })
+                 .filter(Predicates.notNull())
+                 .filter(new Predicate<VAppTemplate>() {
+                    @Override
+                    public boolean apply(VAppTemplate input) {
+                       return input.getTasks().isEmpty();
+                    }
+                 }).toSet());
+      }
+      return vAppTemplates;
    }
 
    @Override
@@ -345,38 +325,39 @@ public class VCloudDirectorComputeServiceAdapter implements
 
    @Override
    public Iterable<Vm> listNodes() {
-      Org org = getOrgForSession();
-      Vdc vdc = api.getVdcApi().get(find(org.getLinks(), ReferencePredicates.<Link>typeEquals(VDC)).getHref());
-      return FluentIterable.from(vdc.getResourceEntities())
-              .filter(ReferencePredicates.typeEquals(VAPP))
-              .transform(new Function<Reference, VApp>() {
-
-                 @Override
-                 public VApp apply(Reference in) {
-                    return api.getVAppApi().get(in.getHref());
-                 }
-              })
-              .filter(Predicates.notNull())
-              .filter(new Predicate<VApp>() {
-                 @Override
-                 public boolean apply(VApp input) {
-                    return input.getTasks().isEmpty();
-                 }
-              })
-              .transformAndConcat(new Function<VApp, Iterable<Vm>>() {
-                 @Override
-                 public Iterable<Vm> apply(VApp input) {
-                    return input.getChildren() != null ? input.getChildren().getVms() : ImmutableList.<Vm>of();
-                 }
-              })
-              // TODO we want also POWERED_OFF?
-              .filter(new Predicate<Vm>() {
-                 @Override
-                 public boolean apply(Vm input) {
-                    return input.getStatus() == ResourceEntity.Status.POWERED_ON;
-                 }
-              })
-              .toSet();
+      Set<Vm> vms = Sets.newHashSet();
+      for (Vdc vdc : listLocations()) {
+         vms.addAll(FluentIterable.from(vdc.getResourceEntities())
+                 .filter(ReferencePredicates.typeEquals(VAPP))
+                 .transform(new Function<Reference, VApp>() {
+                    @Override
+                    public VApp apply(Reference in) {
+                       return api.getVAppApi().get(in.getHref());
+                    }
+                 })
+                 .filter(Predicates.notNull())
+                 .filter(new Predicate<VApp>() {
+                    @Override
+                    public boolean apply(VApp input) {
+                       return input.getTasks().isEmpty();
+                    }
+                 })
+                 .transformAndConcat(new Function<VApp, Iterable<Vm>>() {
+                    @Override
+                    public Iterable<Vm> apply(VApp input) {
+                       return input.getChildren() != null ? input.getChildren().getVms() : ImmutableList.<Vm>of();
+                    }
+                 })
+                 // TODO we want also POWERED_OFF?
+                 .filter(new Predicate<Vm>() {
+                    @Override
+                    public boolean apply(Vm input) {
+                       return input.getStatus() == ResourceEntity.Status.POWERED_ON;
+                    }
+                 })
+                 .toSet());
+      }
+      return vms;
    }
 
    @Override
@@ -385,8 +366,16 @@ public class VCloudDirectorComputeServiceAdapter implements
    }
 
    @Override
-   public Iterable<Location> listLocations() {
-      return ImmutableSet.of();
+   public Iterable<Vdc> listLocations() {
+      Org org = getOrgForSession();
+      return FluentIterable.from(org.getLinks())
+              .filter(Predicates.and(ReferencePredicates.<Link>typeEquals(VDC)))
+              .transform(new Function<Link, Vdc>() {
+                 @Override
+                 public Vdc apply(Link input) {
+                    return api.getVdcApi().get(input.getHref());
+                 }
+              }).toSet();
    }
 
    @Override
@@ -436,6 +425,28 @@ public class VCloudDirectorComputeServiceAdapter implements
    @Override
    public void suspendNode(String id) {
       api.getVmApi().suspend(id);
+   }
+
+   private Vdc getVdc(String locationId) {
+      return api.getVdcApi().get(URI.create(locationId));
+   }
+
+   private Set<Vm> getAvailableVMsFromVAppTemplate(VAppTemplate vAppTemplate) {
+      return ImmutableSet.copyOf(filter(vAppTemplate.getChildren(), new Predicate<Vm>() {
+         // filter out vms in the vApp template with computer name that contains underscores, dots,
+         // or both.
+         @Override
+         public boolean apply(Vm input) {
+            GuestCustomizationSection guestCustomizationSection = api.getVmApi().getGuestCustomizationSection(input.getId());
+            String computerName = guestCustomizationSection.getComputerName();
+            return computerName.equals(computerName);
+         }
+      }));
+   }
+
+   private Org getOrgForSession() {
+      Session session = api.getCurrentSession();
+      return api.getOrgApi().get(find(api.getOrgApi().list(), ReferencePredicates.nameEquals(session.get())).getHref());
    }
 
 }
