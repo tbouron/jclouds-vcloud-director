@@ -24,8 +24,7 @@ import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.VAPP;
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.VAPP_TEMPLATE;
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.VDC;
 import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.name;
-import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.tryFindNetworkInOrgWithFenceMode;
-import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.tryFindNetworkNamed;
+import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.tryFindNetworkInVDCWithFenceMode;
 import java.net.URI;
 import java.util.Set;
 
@@ -107,34 +106,29 @@ public class VCloudDirectorComputeServiceAdapter implements
    }
 
    @Override
-   public NodeAndInitialCredentials<Vm> createNodeWithGroupEncodedIntoName(String group, String name,
-                                                                                  Template template) {
+   public NodeAndInitialCredentials<Vm> createNodeWithGroupEncodedIntoName(String group, String name, Template template) {
       checkNotNull(template, "template was null");
       checkNotNull(template.getOptions(), "template options was null");
 
       String imageId = checkNotNull(template.getImage().getId(), "template image id must not be null");
       String locationId = checkNotNull(template.getLocation().getId(), "template location id must not be null");
+      Vdc vdc = getVdc(locationId);
 
-      Org org = getOrgForSession();
-      final Network network;
+      final Reference networkReference;
 
       if (template.getOptions().getNetworks().isEmpty()) {
+         Org org = getOrgForSession();
          Network.FenceMode fenceMode = Network.FenceMode.NAT_ROUTED;
-         Optional<Network> optionalNetwork = tryFindNetworkInOrgWithFenceMode(api, org, fenceMode);
+         Optional<Network> optionalNetwork = tryFindNetworkInVDCWithFenceMode(api, vdc, fenceMode);
          if (!optionalNetwork.isPresent()) {
             throw new IllegalStateException("Can't find a network with fence mode: " + fenceMode + "in org " + org.getFullName());
          }
-         network = optionalNetwork.get();
+         networkReference = Reference.builder().href(optionalNetwork.get().getHref()).name(optionalNetwork.get().getName()).build();
       } else {
          String networkName = Iterables.getOnlyElement(template.getOptions().getNetworks());
-         Optional<Network> optionalNetwork = tryFindNetworkNamed(api, org, networkName);
-         if (!optionalNetwork.isPresent()) {
-            throw new IllegalStateException("Can't find a network named: " + networkName + "in org " + org.getFullName());
-         }
-         network = optionalNetwork.get();
+         networkReference = tryFindNetworkInVDC(vdc, networkName);
       }
 
-      Vdc vdc = getVdc(locationId);
       VAppTemplate vAppTemplate = api.getVAppTemplateApi().get(imageId);
       Set<Vm> vms = getAvailableVMsFromVAppTemplate(vAppTemplate);
       // TODO now get the first vm to be added to vApp, what if more?
@@ -155,11 +149,10 @@ public class VCloudDirectorComputeServiceAdapter implements
                  .customizationScript(guestCustomizationScript.render(OsFamily.WINDOWS)).build();
       }
 
-      String networkName = network.getName();
-      SourcedCompositionItemParam vmItem = createVmItem(toAddVm, networkName, guestCustomizationSection);
+      SourcedCompositionItemParam vmItem = createVmItem(toAddVm, networkReference.getName(), guestCustomizationSection);
       ComposeVAppParams compositionParams = ComposeVAppParams.builder()
               .name(name)
-              .instantiationParams(instantiationParams(vdc, networkName, network))
+              .instantiationParams(instantiationParams(vdc, networkReference))
               .sourcedItems(ImmutableList.of(vmItem))
               .deploy()
               .powerOn()
@@ -208,8 +201,16 @@ public class VCloudDirectorComputeServiceAdapter implements
       return new NodeAndInitialCredentials<Vm>(vm, vm.getId(), credsBuilder.build());
    }
 
-   private SourcedCompositionItemParam createVmItem(Vm vm, String networkName, GuestCustomizationSection
-           guestCustomizationSection) {
+   private Reference tryFindNetworkInVDC(Vdc vdc, String networkName) {
+      Optional<Reference> referenceOptional = Iterables.tryFind(vdc.getAvailableNetworks(), ReferencePredicates.nameEquals(networkName));
+      if (!referenceOptional.isPresent()) {
+         throw new IllegalStateException("Can't find a network named: " + networkName + "in vDC " + vdc.getName());
+      }
+      //return api.getNetworkApi().get(referenceOptional.get().getHref());
+      return referenceOptional.get();
+   }
+
+   private SourcedCompositionItemParam createVmItem(Vm vm, String networkName, GuestCustomizationSection guestCustomizationSection) {
       // creating an item element. this item will contain the vm which should be added to the vapp.
       Reference reference = Reference.builder().name(name("vm-")).href(vm.getHref()).type(vm.getType()).build();
       SourcedCompositionItemParam vmItem = SourcedCompositionItemParam.builder().source(reference).build();
@@ -242,11 +243,11 @@ public class VCloudDirectorComputeServiceAdapter implements
       return vmItem;
    }
 
-   protected InstantiationParams instantiationParams(Vdc vdc, String networkName, Network network) {
+   protected InstantiationParams instantiationParams(Vdc vdc, Reference network) {
       NetworkConfiguration networkConfiguration = networkConfiguration(vdc, network);
 
       InstantiationParams instantiationParams = InstantiationParams.builder()
-              .sections(ImmutableSet.of(networkConfigSection(networkName, networkConfiguration)))
+              .sections(ImmutableSet.of(networkConfigSection(network.getName(), networkConfiguration)))
               .build();
 
       return instantiationParams;
@@ -267,7 +268,7 @@ public class VCloudDirectorComputeServiceAdapter implements
       return networkConfigSection;
    }
 
-   private NetworkConfiguration networkConfiguration(Vdc vdc, final Network network) {
+   private NetworkConfiguration networkConfiguration(Vdc vdc, final Reference network) {
       Set<Reference> networks = vdc.getAvailableNetworks();
       Optional<Reference> parentNetwork = Iterables.tryFind(networks, new Predicate<Reference>() {
          @Override
@@ -276,6 +277,9 @@ public class VCloudDirectorComputeServiceAdapter implements
          }
       });
 
+      if (!parentNetwork.isPresent()) {
+         throw new IllegalStateException("Cannot find a parent network: " + network.getName() + " given ");
+      }
       return NetworkConfiguration.builder()
               .parentNetwork(parentNetwork.get())
               .fenceMode(Network.FenceMode.BRIDGED)
