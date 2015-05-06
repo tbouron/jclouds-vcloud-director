@@ -17,8 +17,6 @@
 package org.jclouds.vcloud.director.v1_5.compute.util;
 
 import static com.google.common.collect.Iterables.filter;
-import static com.google.common.collect.Iterables.tryFind;
-import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.ORG_NETWORK;
 import java.net.URI;
 import java.util.Random;
 import java.util.Set;
@@ -39,13 +37,11 @@ import org.jclouds.vcloud.director.v1_5.domain.dmtf.cim.ResourceAllocationSettin
 import org.jclouds.vcloud.director.v1_5.domain.dmtf.cim.ResourceAllocationSettingData.ResourceType;
 import org.jclouds.vcloud.director.v1_5.domain.network.Network;
 import org.jclouds.vcloud.director.v1_5.domain.network.NetworkConnection;
-import org.jclouds.vcloud.director.v1_5.domain.org.Org;
 import org.jclouds.vcloud.director.v1_5.domain.section.GuestCustomizationSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.NetworkConnectionSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.OperatingSystemSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.VirtualHardwareSection;
 import org.jclouds.vcloud.director.v1_5.functions.SectionForVApp;
-import org.jclouds.vcloud.director.v1_5.predicates.ReferencePredicates;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -162,26 +158,6 @@ public class VCloudDirectorComputeUtils {
       return prefix + Integer.toString(new Random().nextInt(Integer.MAX_VALUE));
    }
 
-   public static Optional<Network> tryFindNetworkInOrgWithFenceMode(final VCloudDirectorApi api, Org org, final
-   Network.FenceMode fenceMode) {
-      FluentIterable<Network> networks = FluentIterable.from(org.getLinks())
-              .filter(ReferencePredicates.typeEquals(ORG_NETWORK))
-              .transform(new Function<Link, Network>() {
-                 @Override
-                 public Network apply(Link in) {
-                    return api.getNetworkApi().get(in.getHref());
-                 }
-              });
-
-      return tryFind(networks, new Predicate<Network>() {
-         @Override
-         public boolean apply(Network input) {
-            if (input.getTasks().size() != 0) return false;
-            return input.getConfiguration().getFenceMode().equals(fenceMode);
-         }
-      });
-   }
-
    public static Optional<Network> tryFindNetworkInVDCWithFenceMode(final VCloudDirectorApi api, Vdc vdc, final Network.FenceMode fenceMode) {
       return FluentIterable.from(vdc.getAvailableNetworks())
               .transform(new Function<Reference, Network>() {
@@ -191,12 +167,11 @@ public class VCloudDirectorComputeUtils {
                  }
               })
               .firstMatch(new Predicate<Network>() {
-         @Override
-         public boolean apply(Network input) {
-            if (input.getTasks().size() != 0) return false;
-            return input.getConfiguration().getFenceMode().equals(fenceMode);
-         }
-      });
+                 @Override
+                 public boolean apply(Network input) {
+                    return fenceMode.equals(input.getConfiguration().getFenceMode());
+                 }
+              });
    }
 
    public static URI getVAppParent(Vm vm) {
