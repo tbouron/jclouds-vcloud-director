@@ -24,7 +24,7 @@ import javax.inject.Named;
 import org.jclouds.ContextBuilder;
 import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.RunNodesException;
-import org.jclouds.compute.domain.ExecResponse;
+import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.domain.TemplateBuilder;
@@ -32,7 +32,6 @@ import org.jclouds.compute.internal.BaseComputeServiceContextLiveTest;
 import org.jclouds.compute.reference.ComputeServiceConstants;
 import org.jclouds.logging.Logger;
 import org.jclouds.logging.slf4j.config.SLF4JLoggingModule;
-import org.jclouds.ssh.SshClient;
 import org.jclouds.sshj.config.SshjSshClientModule;
 import org.jclouds.vcloud.director.v1_5.compute.options.VCloudDirectorTemplateOptions;
 import org.testng.annotations.Test;
@@ -61,6 +60,10 @@ public class VCloudDirectorComputeServiceContextLiveTest extends BaseComputeServ
                       new SshjSshClientModule()))
               .build(ComputeServiceContext.class);
 
+      for (ComputeMetadata computeMetadata : context.getComputeService().listNodes()) {
+         System.out.println(computeMetadata);
+      }
+
       TemplateBuilder templateBuilder = context.getComputeService().templateBuilder();
 
       Template template = templateBuilder
@@ -79,11 +82,11 @@ public class VCloudDirectorComputeServiceContextLiveTest extends BaseComputeServ
       try {
          Set<? extends NodeMetadata> nodes = context.getComputeService().createNodesInGroup(name, 1, template);
          node = Iterables.getOnlyElement(nodes);
-         logger.debug("Created Node: %s", node);
-         SshClient client = context.utils().sshForNode().apply(node);
-         client.connect();
-         ExecResponse hello = client.exec("mount");
-         logger.debug(hello.getOutput().trim());
+//         logger.debug("Created Node: %s", node);
+//         SshClient client = context.utils().sshForNode().apply(node);
+//         client.connect();
+//         ExecResponse hello = client.exec("mount");
+//         logger.debug(hello.getOutput().trim());
       } finally {
          if (node != null) {
             context.getComputeService().destroyNode(node.getId());

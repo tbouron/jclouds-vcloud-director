@@ -76,7 +76,7 @@ public class HardwareForVm implements Function<Vm, Hardware> {
       double cores = extractCoresFrom(virtualHardwareSection);
       builder.id(from.getId())
              .name(from.getName())
-             .hypervisor("VMware")
+             .hypervisor("esxi")
              .providerId(from.getHref().toString())
              .ram(ram)
              .processors(ImmutableList.of(new Processor(cores, 1)));

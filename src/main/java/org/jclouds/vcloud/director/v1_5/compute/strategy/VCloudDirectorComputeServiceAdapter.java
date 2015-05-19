@@ -25,6 +25,7 @@ import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.VAPP_TEMP
 import static org.jclouds.vcloud.director.v1_5.VCloudDirectorMediaType.VDC;
 import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.name;
 import static org.jclouds.vcloud.director.v1_5.compute.util.VCloudDirectorComputeUtils.tryFindNetworkInVDCWithFenceMode;
+import java.math.BigInteger;
 import java.net.URI;
 import java.util.Set;
 
@@ -55,6 +56,7 @@ import org.jclouds.vcloud.director.v1_5.domain.VApp;
 import org.jclouds.vcloud.director.v1_5.domain.VAppTemplate;
 import org.jclouds.vcloud.director.v1_5.domain.Vdc;
 import org.jclouds.vcloud.director.v1_5.domain.Vm;
+import org.jclouds.vcloud.director.v1_5.domain.dmtf.cim.ResourceAllocationSettingData;
 import org.jclouds.vcloud.director.v1_5.domain.dmtf.ovf.MsgType;
 import org.jclouds.vcloud.director.v1_5.domain.network.Network;
 import org.jclouds.vcloud.director.v1_5.domain.network.NetworkAssignment;
@@ -63,12 +65,14 @@ import org.jclouds.vcloud.director.v1_5.domain.network.NetworkConnection;
 import org.jclouds.vcloud.director.v1_5.domain.network.VAppNetworkConfiguration;
 import org.jclouds.vcloud.director.v1_5.domain.org.Org;
 import org.jclouds.vcloud.director.v1_5.domain.params.ComposeVAppParams;
+import org.jclouds.vcloud.director.v1_5.domain.params.DeployVAppParams;
 import org.jclouds.vcloud.director.v1_5.domain.params.InstantiationParams;
 import org.jclouds.vcloud.director.v1_5.domain.params.SourcedCompositionItemParam;
 import org.jclouds.vcloud.director.v1_5.domain.params.UndeployVAppParams;
 import org.jclouds.vcloud.director.v1_5.domain.section.GuestCustomizationSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.NetworkConfigSection;
 import org.jclouds.vcloud.director.v1_5.domain.section.NetworkConnectionSection;
+import org.jclouds.vcloud.director.v1_5.domain.section.VirtualHardwareSection;
 import org.jclouds.vcloud.director.v1_5.predicates.ReferencePredicates;
 import org.jclouds.vcloud.director.v1_5.predicates.TaskSuccess;
 
@@ -112,6 +116,8 @@ public class VCloudDirectorComputeServiceAdapter implements
 
       String imageId = checkNotNull(template.getImage().getId(), "template image id must not be null");
       String locationId = checkNotNull(template.getLocation().getId(), "template location id must not be null");
+      final String hardwareId = checkNotNull(template.getHardware().getId(), "template image id must not be null");
+
       Vdc vdc = getVdc(locationId);
 
       final Reference networkReference;
@@ -142,7 +148,6 @@ public class VCloudDirectorComputeServiceAdapter implements
               .build();
 
       Statement guestCustomizationScript = ((VCloudDirectorTemplateOptions)(template.getOptions())).getGuestCustomizationScript();
-
       if (guestCustomizationScript != null) {
          guestCustomizationSection = guestCustomizationSection.toBuilder()
                  // TODO differentiate on guestOS
@@ -154,8 +159,6 @@ public class VCloudDirectorComputeServiceAdapter implements
               .name(name)
               .instantiationParams(instantiationParams(vdc, networkReference))
               .sourcedItems(ImmutableList.of(vmItem))
-              .deploy()
-              .powerOn()
               .build();
       VApp vApp = api.getVdcApi().composeVApp(vdc.getId(), compositionParams);
       Task compositionTask = Iterables.getFirst(vApp.getTasks(), null);
@@ -166,16 +169,56 @@ public class VCloudDirectorComputeServiceAdapter implements
 
       if (!vApp.getTasks().isEmpty()) {
          for (Task task : vApp.getTasks()) {
-
-            logger.debug(">> awaiting vApp(%s) deployment", vApp.getId());
-            boolean vmReady = retryTaskSuccess.apply(task);
-            logger.trace("<< vApp(%s) deployment completed(%s)", vApp.getId(), vmReady);
+            logger.debug(">> awaiting vApp(%s) composition", vApp.getId());
+            boolean vAppReady = retryTaskSuccess.apply(task);
+            logger.trace("<< vApp(%s) composition completed(%s)", vApp.getId(), vAppReady);
          }
       }
       Vm vm = Iterables.getOnlyElement(api.getVAppApi().get(vApp.getHref()).getChildren().getVms());
 
+      if (!vm.getTasks().isEmpty()) {
+         for (Task task : vm.getTasks()) {
+            logger.debug(">> awaiting vm(%s) deployment", vApp.getId());
+            boolean vmReady = retryTaskSuccess.apply(task);
+            logger.trace("<< vApp(%s) deployment completed(%s)", vApp.getId(), vmReady);
+         }
+      }
+
+      // Configure VirtualHardware on a VM
+      Optional<Hardware> hardwareOptional = Iterables.tryFind(listHardwareProfiles(), new Predicate<Hardware>() {
+         @Override
+         public boolean apply(Hardware input) {
+            return input.getId().equals(hardwareId);
+         }
+      });
+
+      if (hardwareOptional.isPresent()) {
+         String virtualCPUs = String.valueOf(hardwareOptional.get().getProcessors().size());
+         String ram = String.valueOf(hardwareOptional.get().getRam());
+
+         VirtualHardwareSection virtualHardwareSection = api.getVmApi().getVirtualHardwareSection(vm.getHref());
+
+         Predicate<ResourceAllocationSettingData> processorPredicate = resourceTypeEquals(ResourceAllocationSettingData.ResourceType.PROCESSOR);
+         Predicate<ResourceAllocationSettingData> memoryPredicate = resourceTypeEquals(ResourceAllocationSettingData.ResourceType.MEMORY);
+
+         virtualHardwareSection = updateVirtualHardwareSection(virtualHardwareSection, memoryPredicate, ram + " MB of memory", new BigInteger(ram));
+         virtualHardwareSection = updateVirtualHardwareSection(virtualHardwareSection, processorPredicate, virtualCPUs + " virtual CPU(s)", new BigInteger(virtualCPUs));
+
+         Task editVirtualHardwareSectionTask = api.getVmApi().editVirtualHardwareSection(vm.getHref(), virtualHardwareSection);
+         logger.debug(">> awaiting vm(%s) to be edited", vm.getId());
+         boolean vmEdited = retryTaskSuccess.apply(editVirtualHardwareSectionTask);
+         logger.trace("<< vApp(%s) to be edited completed(%s)", vm.getId(), vmEdited);
+
+         Task deployTask = api.getVAppApi().deploy(vApp.getHref(), DeployVAppParams.builder()
+                 .powerOn()
+                 .build());
+         logger.debug(">> awaiting vApp(%s) to be powered on", vApp.getId());
+         boolean vAppPoweredOn = retryTaskSuccess.apply(deployTask);
+         logger.trace("<< vApp(%s) to be powered on completed(%s)", vApp.getId(), vAppPoweredOn);
+      }
+
       // Infer the login credentials from the VM, defaulting to "root" user
-      LoginCredentials defaultCredentials = VCloudDirectorComputeUtils.getCredentialsFrom(vm);
+es      LoginCredentials defaultCredentials = VCloudDirectorComputeUtils.getCredentialsFrom(vm);
       LoginCredentials.Builder credsBuilder;
       if (defaultCredentials == null) {
          credsBuilder = LoginCredentials.builder().user("root");
@@ -201,6 +244,26 @@ public class VCloudDirectorComputeServiceAdapter implements
       return new NodeAndInitialCredentials<Vm>(vm, vm.getId(), credsBuilder.build());
    }
 
+   private VirtualHardwareSection updateVirtualHardwareSection(VirtualHardwareSection virtualHardwareSection, Predicate<ResourceAllocationSettingData>
+           predicate, String elementName, BigInteger virtualQuantity) {
+      Set<? extends ResourceAllocationSettingData> oldItems = virtualHardwareSection.getItems();
+      Set<ResourceAllocationSettingData> newItems = Sets.newLinkedHashSet(oldItems);
+      ResourceAllocationSettingData oldResourceAllocationSettingData = Iterables.find(oldItems, predicate);
+      ResourceAllocationSettingData newResourceAllocationSettingData = oldResourceAllocationSettingData.toBuilder().elementName(elementName).virtualQuantity(virtualQuantity).build();
+      newItems.remove(oldResourceAllocationSettingData);
+      newItems.add(newResourceAllocationSettingData);
+      return virtualHardwareSection.toBuilder().items(newItems).build();
+   }
+
+   private Predicate<ResourceAllocationSettingData> resourceTypeEquals(final ResourceAllocationSettingData.ResourceType resourceType) {
+      return new Predicate<ResourceAllocationSettingData>() {
+         @Override
+         public boolean apply(ResourceAllocationSettingData rasd) {
+            return rasd.getResourceType() == resourceType;
+         }
+      };
+   }
+
    private Reference tryFindNetworkInVDC(Vdc vdc, String networkName) {
       Optional<Reference> referenceOptional = Iterables.tryFind(vdc.getAvailableNetworks(), ReferencePredicates.nameEquals(networkName));
       if (!referenceOptional.isPresent()) {
@@ -212,8 +275,8 @@ public class VCloudDirectorComputeServiceAdapter implements
 
    private SourcedCompositionItemParam createVmItem(Vm vm, String networkName, GuestCustomizationSection guestCustomizationSection) {
       // creating an item element. this item will contain the vm which should be added to the vapp.
-      Reference reference = Reference.builder().name(name("vm-")).href(vm.getHref()).type(vm.getType()).build();
-      SourcedCompositionItemParam vmItem = SourcedCompositionItemParam.builder().source(reference).build();
+      final String name = name("vm-");
+      Reference reference = Reference.builder().name(name).href(vm.getHref()).type(vm.getType()).build();
 
       InstantiationParams vmInstantiationParams;
       Set<NetworkAssignment> networkAssignments = Sets.newLinkedHashSet();
@@ -228,26 +291,28 @@ public class VCloudDirectorComputeServiceAdapter implements
               .info(MsgType.builder().value("networkInfo").build())
               .primaryNetworkConnectionIndex(0).networkConnection(networkConnection).build();
 
-      // adding the network connection section to the instantiation params of the vapp.
       vmInstantiationParams = InstantiationParams.builder()
               .sections(ImmutableSet.of(networkConnectionSection, guestCustomizationSection))
               .build();
 
+      SourcedCompositionItemParam.Builder vmItemBuilder = SourcedCompositionItemParam.builder().source(reference);
+
       if (vmInstantiationParams != null)
-         vmItem = SourcedCompositionItemParam.builder().fromSourcedCompositionItemParam(vmItem)
-                 .instantiationParams(vmInstantiationParams).build();
+         vmItemBuilder.instantiationParams(vmInstantiationParams);
 
       if (networkAssignments != null)
-         vmItem = SourcedCompositionItemParam.builder().fromSourcedCompositionItemParam(vmItem)
-                 .networkAssignment(networkAssignments).build();
-      return vmItem;
+         vmItemBuilder.networkAssignment(networkAssignments);
+
+      return vmItemBuilder.build();
    }
 
    protected InstantiationParams instantiationParams(Vdc vdc, Reference network) {
       NetworkConfiguration networkConfiguration = networkConfiguration(vdc, network);
 
       InstantiationParams instantiationParams = InstantiationParams.builder()
-              .sections(ImmutableSet.of(networkConfigSection(network.getName(), networkConfiguration)))
+              .sections(ImmutableSet.of(
+                      networkConfigSection(network.getName(), networkConfiguration))
+              )
               .build();
 
       return instantiationParams;
@@ -291,10 +356,11 @@ public class VCloudDirectorComputeServiceAdapter implements
    public Iterable<Hardware> listHardwareProfiles() {
       Set<Hardware> hardware = Sets.newLinkedHashSet();
       // todo they are only placeholders at the moment
-      hardware.add(new HardwareBuilder().ids("micro").hypervisor("lxc").name("micro").processor(new Processor(1, 1)).ram(512).build());
-      hardware.add(new HardwareBuilder().ids("small").hypervisor("lxc").name("small").processor(new Processor(1, 1)).ram(1024).build());
-      hardware.add(new HardwareBuilder().ids("medium").hypervisor("lxc").name("medium").processor(new Processor(1, 1)).ram(2048).build());
-      hardware.add(new HardwareBuilder().ids("large").hypervisor("lxc").name("large").processor(new Processor(1, 1)).ram(3072).build());
+      hardware.add(new HardwareBuilder().ids("micro").hypervisor("esxi").name("micro").processor(new Processor(1, 1)).ram(512).build());
+      hardware.add(new HardwareBuilder().ids("small").hypervisor("esxi").name("small").processor(new Processor(2, 1)).ram(1024).build());
+      hardware.add(new HardwareBuilder().ids("medium").hypervisor("esxi").name("medium").processor(new Processor(4, 1)).ram(2048).build());
+      hardware.add(new HardwareBuilder().ids("large").hypervisor("esxi").name("large").processor(new Processor(8, 1)).ram(4096).build());
+      hardware.add(new HardwareBuilder().ids("xlarge").hypervisor("esxi").name("xlarge").processor(new Processor(16, 1)).ram(8192).build());
       return hardware;
    }
 
