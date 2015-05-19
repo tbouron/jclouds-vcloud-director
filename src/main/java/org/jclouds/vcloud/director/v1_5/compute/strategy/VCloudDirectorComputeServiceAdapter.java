@@ -118,6 +118,8 @@ public class VCloudDirectorComputeServiceAdapter implements
       String locationId = checkNotNull(template.getLocation().getId(), "template location id must not be null");
       final String hardwareId = checkNotNull(template.getHardware().getId(), "template image id must not be null");
 
+      VCloudDirectorTemplateOptions templateOptions = VCloudDirectorTemplateOptions.class.cast(template.getOptions());
+
       Vdc vdc = getVdc(locationId);
 
       final Reference networkReference;
@@ -192,33 +194,36 @@ public class VCloudDirectorComputeServiceAdapter implements
          }
       });
 
-      if (hardwareOptional.isPresent()) {
-         String virtualCPUs = String.valueOf(hardwareOptional.get().getProcessors().size());
-         String ram = String.valueOf(hardwareOptional.get().getRam());
+      // virtualCpus and Memory templateOptions get the precedence over the defauld values given by hardwareId
+      String processors = templateOptions.getVirtualCpus().or(getProcessorsFromHardware(hardwareOptional));
+      String ram = templateOptions.getMemory().or(getRamFromHardware(hardwareOptional));
 
-         VirtualHardwareSection virtualHardwareSection = api.getVmApi().getVirtualHardwareSection(vm.getHref());
-
-         Predicate<ResourceAllocationSettingData> processorPredicate = resourceTypeEquals(ResourceAllocationSettingData.ResourceType.PROCESSOR);
-         Predicate<ResourceAllocationSettingData> memoryPredicate = resourceTypeEquals(ResourceAllocationSettingData.ResourceType.MEMORY);
-
-         virtualHardwareSection = updateVirtualHardwareSection(virtualHardwareSection, memoryPredicate, ram + " MB of memory", new BigInteger(ram));
-         virtualHardwareSection = updateVirtualHardwareSection(virtualHardwareSection, processorPredicate, virtualCPUs + " virtual CPU(s)", new BigInteger(virtualCPUs));
-
-         Task editVirtualHardwareSectionTask = api.getVmApi().editVirtualHardwareSection(vm.getHref(), virtualHardwareSection);
-         logger.debug(">> awaiting vm(%s) to be edited", vm.getId());
-         boolean vmEdited = retryTaskSuccess.apply(editVirtualHardwareSectionTask);
-         logger.trace("<< vApp(%s) to be edited completed(%s)", vm.getId(), vmEdited);
-
-         Task deployTask = api.getVAppApi().deploy(vApp.getHref(), DeployVAppParams.builder()
-                 .powerOn()
-                 .build());
-         logger.debug(">> awaiting vApp(%s) to be powered on", vApp.getId());
-         boolean vAppPoweredOn = retryTaskSuccess.apply(deployTask);
-         logger.trace("<< vApp(%s) to be powered on completed(%s)", vApp.getId(), vAppPoweredOn);
+      if (processors == null || ram == null) {
+         logger.error("the hardwareId %s specified doesn't exist. The deployment may fail subsequently");
+         throw new IllegalStateException("Processors and/or ram are null.");
       }
 
+      VirtualHardwareSection virtualHardwareSection = api.getVmApi().getVirtualHardwareSection(vm.getHref());
+
+      Predicate<ResourceAllocationSettingData> processorPredicate = resourceTypeEquals(ResourceAllocationSettingData.ResourceType.PROCESSOR);
+      virtualHardwareSection = updateVirtualHardwareSection(virtualHardwareSection, processorPredicate, processors + " virtual CPU(s)", new BigInteger(processors));
+      Predicate<ResourceAllocationSettingData> memoryPredicate = resourceTypeEquals(ResourceAllocationSettingData.ResourceType.MEMORY);
+      virtualHardwareSection = updateVirtualHardwareSection(virtualHardwareSection, memoryPredicate, ram + " MB of memory", new BigInteger(ram));
+
+      Task editVirtualHardwareSectionTask = api.getVmApi().editVirtualHardwareSection(vm.getHref(), virtualHardwareSection);
+      logger.debug(">> awaiting vm(%s) to be edited", vm.getId());
+      boolean vmEdited = retryTaskSuccess.apply(editVirtualHardwareSectionTask);
+      logger.trace("<< vApp(%s) to be edited completed(%s)", vm.getId(), vmEdited);
+
+      Task deployTask = api.getVAppApi().deploy(vApp.getHref(), DeployVAppParams.builder()
+              .powerOn()
+              .build());
+      logger.debug(">> awaiting vApp(%s) to be powered on", vApp.getId());
+      boolean vAppPoweredOn = retryTaskSuccess.apply(deployTask);
+      logger.trace("<< vApp(%s) to be powered on completed(%s)", vApp.getId(), vAppPoweredOn);
+
       // Infer the login credentials from the VM, defaulting to "root" user
-es      LoginCredentials defaultCredentials = VCloudDirectorComputeUtils.getCredentialsFrom(vm);
+      LoginCredentials defaultCredentials = VCloudDirectorComputeUtils.getCredentialsFrom(vm);
       LoginCredentials.Builder credsBuilder;
       if (defaultCredentials == null) {
          credsBuilder = LoginCredentials.builder().user("root");
@@ -262,6 +267,16 @@ es      LoginCredentials defaultCredentials = VCloudDirectorComputeUtils.getCred
             return rasd.getResourceType() == resourceType;
          }
       };
+   }
+
+   private String getProcessorsFromHardware(Optional<Hardware> hardwareOptional) {
+      if (!hardwareOptional.isPresent()) return null;
+      return String.valueOf(hardwareOptional.get().getProcessors().size());
+   }
+
+   private String getRamFromHardware(Optional<Hardware> hardwareOptional) {
+      if (!hardwareOptional.isPresent()) return null;
+      return String.valueOf(hardwareOptional.get().getRam());
    }
 
    private Reference tryFindNetworkInVDC(Vdc vdc, String networkName) {

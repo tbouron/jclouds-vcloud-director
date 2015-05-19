@@ -17,16 +17,22 @@
 package org.jclouds.vcloud.director.v1_5.compute.options;
 
 import static com.google.common.base.Objects.equal;
-
-import com.google.common.base.Objects;
+import java.util.Map;
 
 import org.jclouds.compute.options.TemplateOptions;
+import org.jclouds.domain.LoginCredentials;
+import org.jclouds.javax.annotation.Nullable;
 import org.jclouds.scriptbuilder.domain.Statement;
 import org.jclouds.scriptbuilder.domain.Statements;
+
+import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 
 public class VCloudDirectorTemplateOptions extends TemplateOptions implements Cloneable {
 
    private Statement guestCustomizationScript = null;
+   protected Optional<String> memory = Optional.absent();
+   protected Optional<String> virtualCpus = Optional.absent();
 
    /**
     * Specifies a script to be added to the GuestCustomizationSection
@@ -47,6 +53,10 @@ public class VCloudDirectorTemplateOptions extends TemplateOptions implements Cl
       return guestCustomizationScript;
    }
 
+   public Optional<String> getMemory() { return memory; }
+
+   public Optional<String> getVirtualCpus() { return virtualCpus; }
+
    @Override
    public VCloudDirectorTemplateOptions clone() {
       VCloudDirectorTemplateOptions options = new VCloudDirectorTemplateOptions();
@@ -61,6 +71,12 @@ public class VCloudDirectorTemplateOptions extends TemplateOptions implements Cl
          VCloudDirectorTemplateOptions vto = VCloudDirectorTemplateOptions.class.cast(to);
          if (getGuestCustomizationScript() != null)
             vto.guestCustomizationScript(getGuestCustomizationScript());
+         if (memory.isPresent()) {
+            vto.memory(memory.get());
+         }
+         if (virtualCpus.isPresent()) {
+            vto.virtualCpus(virtualCpus.get());
+         }
       }
    }
 
@@ -100,4 +116,161 @@ public class VCloudDirectorTemplateOptions extends TemplateOptions implements Cl
          return options.guestCustomizationScript(guestCustomizationScript);
       }
    }
+
+   public VCloudDirectorTemplateOptions memory(@Nullable String memory) {
+      this.memory = Optional.fromNullable(memory);
+      return this;
+   }
+
+   public VCloudDirectorTemplateOptions virtualCpus(@Nullable String virtualCpus) {
+      this.virtualCpus = Optional.fromNullable(virtualCpus);
+      return this;
+   }
+
+   // methods that only facilitate returning the correct object type
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions blockOnPort(int port, int seconds) {
+      return VCloudDirectorTemplateOptions.class.cast(super.blockOnPort(port, seconds));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions inboundPorts(int... ports) {
+      return VCloudDirectorTemplateOptions.class.cast(super.inboundPorts(ports));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions authorizePublicKey(String publicKey) {
+      return VCloudDirectorTemplateOptions.class.cast(super.authorizePublicKey(publicKey));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions installPrivateKey(String privateKey) {
+      return VCloudDirectorTemplateOptions.class.cast(super.installPrivateKey(privateKey));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions blockUntilRunning(boolean blockUntilRunning) {
+      return VCloudDirectorTemplateOptions.class.cast(super.blockUntilRunning(blockUntilRunning));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions dontAuthorizePublicKey() {
+      return VCloudDirectorTemplateOptions.class.cast(super.dontAuthorizePublicKey());
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions nameTask(String name) {
+      return VCloudDirectorTemplateOptions.class.cast(super.nameTask(name));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions runAsRoot(boolean runAsRoot) {
+      return VCloudDirectorTemplateOptions.class.cast(super.runAsRoot(runAsRoot));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions runScript(Statement script) {
+      return VCloudDirectorTemplateOptions.class.cast(super.runScript(script));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions overrideLoginCredentials(LoginCredentials overridingCredentials) {
+      return VCloudDirectorTemplateOptions.class.cast(super.overrideLoginCredentials(overridingCredentials));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions overrideLoginPassword(String password) {
+      return VCloudDirectorTemplateOptions.class.cast(super.overrideLoginPassword(password));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions overrideLoginPrivateKey(String privateKey) {
+      return VCloudDirectorTemplateOptions.class.cast(super.overrideLoginPrivateKey(privateKey));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions overrideLoginUser(String loginUser) {
+      return VCloudDirectorTemplateOptions.class.cast(super.overrideLoginUser(loginUser));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions overrideAuthenticateSudo(boolean authenticateSudo) {
+      return VCloudDirectorTemplateOptions.class.cast(super.overrideAuthenticateSudo(authenticateSudo));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions userMetadata(Map<String, String> userMetadata) {
+      return VCloudDirectorTemplateOptions.class.cast(super.userMetadata(userMetadata));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions userMetadata(String key, String value) {
+      return VCloudDirectorTemplateOptions.class.cast(super.userMetadata(key, value));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions nodeNames(Iterable<String> nodeNames) {
+      return VCloudDirectorTemplateOptions.class.cast(super.nodeNames(nodeNames));
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public VCloudDirectorTemplateOptions networks(Iterable<String> networks) {
+      return VCloudDirectorTemplateOptions.class.cast(super.networks(networks));
+   }
+
 }

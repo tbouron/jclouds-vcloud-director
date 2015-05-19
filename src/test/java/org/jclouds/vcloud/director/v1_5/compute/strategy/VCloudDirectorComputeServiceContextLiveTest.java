@@ -24,7 +24,6 @@ import javax.inject.Named;
 import org.jclouds.ContextBuilder;
 import org.jclouds.compute.ComputeServiceContext;
 import org.jclouds.compute.RunNodesException;
-import org.jclouds.compute.domain.ComputeMetadata;
 import org.jclouds.compute.domain.NodeMetadata;
 import org.jclouds.compute.domain.Template;
 import org.jclouds.compute.domain.TemplateBuilder;
@@ -60,10 +59,6 @@ public class VCloudDirectorComputeServiceContextLiveTest extends BaseComputeServ
                       new SshjSshClientModule()))
               .build(ComputeServiceContext.class);
 
-      for (ComputeMetadata computeMetadata : context.getComputeService().listNodes()) {
-         System.out.println(computeMetadata);
-      }
-
       TemplateBuilder templateBuilder = context.getComputeService().templateBuilder();
 
       Template template = templateBuilder
@@ -74,10 +69,11 @@ public class VCloudDirectorComputeServiceContextLiveTest extends BaseComputeServ
       // test passing custom options
       VCloudDirectorTemplateOptions options = template.getOptions().as(VCloudDirectorTemplateOptions.class);
 
-      options
+      //options.memory("1024").virtualCpus("4").networks("Operational_Network_01"); // TAI2.0
       //.networks("Deployment_Network_01"); // TAI
       //.networks("Operational_Network_01"); // TAI2.0
-              .networks("Operational_Network_01"); // TAI2.0
+
+      options.networks("Operational_Network_01"); // TAI2.0
       NodeMetadata node = null;
       try {
          Set<? extends NodeMetadata> nodes = context.getComputeService().createNodesInGroup(name, 1, template);
